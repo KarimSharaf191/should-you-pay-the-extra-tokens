@@ -1,0 +1,11 @@
+condition,model,n,mean_total_tok,min_total_tok,max_total_tok,mean_cost_usd,min_cost_usd,max_cost_usd,run_total_usd,cost_source
+matrix-agentic_rag,qwen3-8b,1037,1672.4,378,3682,0.00020761,4.963e-05,0.0004437,0.215289,listprice/recorded
+matrix-cot,qwen3-8b,1037,2712.4,774,6850,0.00036098,0.00011489,0.00087277,0.374338,listprice
+matrix-dspy,qwen3-8b,1037,2570.9,689,6639,0.0003057,8.534e-05,0.00078149,0.317016,listprice
+matrix-rag,qwen3-8b,1037,514.8,255,977,6.143e-05,3.119e-05,0.00011532,0.063699,listprice/recorded
+matrix-think-agentic_rag,qwen3-8b,1037,1312.5,447,3898,0.0004062,0.00015978,0.00160973,0.421226,recorded
+matrix-think-cot,qwen3-8b,1037,3171.7,1043,7905,0.00057131,0.00023864,0.00150895,0.592447,listprice
+matrix-think-dspy,qwen3-8b,1037,3047.1,963,7537,0.00052373,0.00021137,0.00139937,0.543105,listprice
+matrix-think-rag,qwen3-8b,1037,981.6,463,3471,0.00027652,0.00011509,0.00139239,0.286753,recorded
+matrix-think-zeroshot,qwen3-8b,1037,2988.0,801,8278,0.00053504,0.00017585,0.00246323,0.554832,recorded
+matrix-zeroshot,qwen3-8b,1037,2450.7,569,6519,0.00028788,6.759e-05,0.00076374,0.298535,listprice

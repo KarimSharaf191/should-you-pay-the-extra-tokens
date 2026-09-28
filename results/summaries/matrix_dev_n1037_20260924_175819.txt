@@ -1,0 +1,70 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-09-24 17:58:19
+Split     : dev | stratified n=1037 | seed=0
+Endpoint  : https://openrouter.ai/api/v1
+Thinking  : OFF
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                  0.531        0.548        0.671        0.527        0.567
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                  0.542        0.558        0.630        0.530        0.496
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                   2451         2571         2712          515         1672
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                      3           15          129            4           35
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                      0            0            0            0            0
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-8b               zeroshot  n=1037 err=  0 bal=0.531 f1=0.542   1.7s
+      F1[Enta]=0.745  F1[Cont]=0.241  F1[NotM]=0.639
+      tokens: prompt=2447 completion=3 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2450.7 med=  2272.0 min=    569 max=    6519
+        prompt      mean=   2447.3 med=  2268.0 min=    565 max=    6516
+        completion  mean=      3.4 med=     3.0 min=      3 max=       4
+  qwen3-8b               dspy      n=1037 err=  0 bal=0.548 f1=0.558   1.6s
+      F1[Enta]=0.691  F1[Cont]=0.322  F1[NotM]=0.661
+      tokens: prompt=2556 completion=15 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2570.9 med=  2392.0 min=    689 max=    6639
+        prompt      mean=   2556.3 med=  2377.0 min=    674 max=    6625
+        completion  mean=     14.5 med=    15.0 min=     11 max=      15
+  qwen3-8b               cot       n=1037 err=  0 bal=0.671 f1=0.630   5.0s
+      F1[Enta]=0.709  F1[Cont]=0.506  F1[NotM]=0.674
+      tokens: prompt=2583 completion=129 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2712.4 med=  2531.0 min=    774 max=    6850
+        prompt      mean=   2583.2 med=  2404.0 min=    701 max=    6652
+        completion  mean=    129.1 med=   125.0 min=     56 max=     273
+  qwen3-8b               rag       n=1037 err=  0 bal=0.527 f1=0.530   3.6s
+      F1[Enta]=0.733  F1[Cont]=0.182  F1[NotM]=0.676
+      tokens: prompt=511 completion=4 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=    514.8 med=   498.0 min=    255 max=     977
+        prompt      mean=    511.3 med=   494.0 min=    251 max=     974
+        completion  mean=      3.5 med=     4.0 min=      3 max=       4
+        ret.spans   mean=      8.0 med=     8.0 min=      8 max=       8
+        cost USD    mean= 0.000000 med=0.000000 min=0.000000 max=0.000067  RUN TOTAL=$0.0001
+  qwen3-8b               agentic_rag n=1037 err=  0 bal=0.567 f1=0.496  10.2s
+      F1[Enta]=0.691  F1[Cont]=0.366  F1[NotM]=0.432
+      tokens: prompt=1637 completion=35 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   1672.4 med=  1672.0 min=    378 max=    3682
+        prompt      mean=   1637.1 med=  1632.0 min=    362 max=    3653
+        completion  mean=     35.3 med=    30.0 min=     11 max=     147
+        steps       mean=      3.6 med=     4.0 min=      2 max=       6
+        ret.spans   mean=     12.8 med=    15.0 min=      5 max=      25
+        cost USD    mean= 0.000001 med=0.000000 min=0.000000 max=0.000308  RUN TOTAL=$0.0005

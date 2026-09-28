@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.log
+.env
+
+# Downloaded datasets (see data/README.md)
+data/findver/
+data/coverbench/
+
+# LaTeX build files and template files fetched separately
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/*.pdf
+paper/*.sty
+paper/*.bst

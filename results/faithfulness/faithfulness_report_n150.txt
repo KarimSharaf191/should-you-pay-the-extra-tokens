@@ -1,0 +1,62 @@
+============================================================================================
+Faithfulness sub-study - dev n=150 seed=0
+============================================================================================
+
+STUDY 1 - EVIDENCE ABLATION
+--------------------------------------------------------------------------------------------
+  Does removing the gold evidence change the prediction?
+  random_ctrl removes an equal amount of NON-evidence text, so a
+  drop under 'ablated' beyond 'random_ctrl' is evidence-specific.
+
+  n=89 instances with gold evidence (89 matched to a full-context baseline)
+
+  variant           accuracy   flip vs full
+  full(baseline)       0.753            nan
+  ablated              0.393          0.393
+  random_ctrl          0.753          0.034
+  oracle               0.831          0.191
+
+  Evidence-specific effect = acc(random_ctrl) - acc(ablated) = +0.360
+  Near zero means the model was not relying on the gold evidence:
+  removing it cost no more than removing arbitrary text of the same size.
+
+STUDY 2 - RETRIEVAL FAITHFULNESS (deterministic)
+--------------------------------------------------------------------------------------------
+  Does embedding retrieval surface the annotated evidence?
+
+  n=89  |  mean gold spans/instance 2.2  of 85 spans/doc
+
+     k    recall   precision   any hit  all hits
+     1     0.210       0.326     0.326     0.135
+     3     0.374       0.202     0.562     0.258
+     5     0.481       0.164     0.719     0.303
+     8     0.602       0.135     0.831     0.404
+    10     0.625       0.115     0.843     0.427
+    20     0.818       0.080     0.955     0.640
+
+  k=8 is what the regular RAG condition uses; k=5 is the agentic per-search k.
+
+STUDY 3 - AGENTIC STOPPING FAITHFULNESS
+--------------------------------------------------------------------------------------------
+  When does gold evidence arrive, and does the model answer before it does?
+
+  n=150 trajectories (89 with gold evidence)
+  mean answer step            : 2.57
+  mean unique spans seen      : 7.5
+  gold recall at stop         : 0.570
+  ANSWERED WITHOUT ANY GOLD   : 19/89 = 21.3%
+    ...of those, 9/19 were still scored CORRECT (47.4%) - right answer, no evidence
+  mean step gold first appears: 0.23
+  turns where the model emitted neither SEARCH nor ANSWER (fell back to hypothesis as query): 1
+
+STUDY 4 - CITATION FAITHFULNESS IN CoT RATIONALES
+--------------------------------------------------------------------------------------------
+  Are quoted passages real, and does the rationale track the gold evidence?
+
+  n=150  |  rationales containing quotes: 41
+  quote groundedness (quoted text found verbatim in contract): 0.760
+  content-word overlap with GOLD evidence   : 0.554
+  content-word overlap with control spans   : 0.211
+  lift over chance                          : +0.343
+  A lift near zero means the rationale is no more anchored to the
+  operative clause than to arbitrary contract text.

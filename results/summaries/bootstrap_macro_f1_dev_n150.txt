@@ -1,0 +1,36 @@
+================================================================================================
+Paired bootstrap significance test - metric=macro_f1
+================================================================================================
+Split dev | n=150 | seed=0 | 10000 resamples | boot-seed 0
+Pairing: instances resampled jointly; both arms scored on the same resample.
+Holm-Bonferroni applied within each (model, family).
+Columns: <reference> -> <arm>  D=arm-reference  [95% CI]
+
+################################################################################################
+# qwen3-8b
+################################################################################################
+  runs present: agentic_rag, agentic_rag+think, cot, cot+think, dspy, dspy+think, rag, rag+think, zeroshot, zeroshot+think
+
+  THINKING ON vs OFF  (positive D = thinking helps)
+  --------------------------------------------------------------------------------------------
+  zeroshot: think ON vs OFF          n= 150  0.630 -> 0.723  D=+0.093  [-0.024,+0.213]  p=0.1235  p_holm=0.4716 
+  dspy: think ON vs OFF              n= 150  0.562 -> 0.738  D=+0.176  [+0.068,+0.291]  p=0.0010  p_holm=0.0050 **
+  cot: think ON vs OFF               n= 150  0.647 -> 0.705  D=+0.059  [-0.030,+0.148]  p=0.1920  p_holm=0.4716 
+  rag: think ON vs OFF               n= 150  0.613 -> 0.681  D=+0.068  [-0.065,+0.198]  p=0.3095  p_holm=0.4716 
+  agentic_rag: think ON vs OFF       n= 150  0.562 -> 0.637  D=+0.075  [-0.018,+0.168]  p=0.1179  p_holm=0.4716 
+
+  SCAFFOLD vs ZEROSHOT  (positive D = scaffold beats baseline)
+  --------------------------------------------------------------------------------------------
+  [nothink] dspy vs zeroshot         n= 150  0.630 -> 0.562  D=-0.068  [-0.199,+0.067]  p=0.3136  p_holm=1.0000 
+  [nothink] cot vs zeroshot          n= 150  0.630 -> 0.647  D=+0.016  [-0.085,+0.123]  p=0.7608  p_holm=1.0000 
+  [nothink] rag vs zeroshot          n= 150  0.630 -> 0.613  D=-0.017  [-0.119,+0.070]  p=0.7197  p_holm=1.0000 
+  [nothink] agentic_rag vs zeroshot  n= 150  0.630 -> 0.562  D=-0.068  [-0.205,+0.071]  p=0.3394  p_holm=1.0000 
+  [think] dspy vs zeroshot           n= 150  0.723 -> 0.738  D=+0.015  [-0.054,+0.085]  p=0.6636  p_holm=1.0000 
+  [think] cot vs zeroshot            n= 150  0.723 -> 0.705  D=-0.018  [-0.082,+0.040]  p=0.5595  p_holm=1.0000 
+  [think] rag vs zeroshot            n= 150  0.723 -> 0.681  D=-0.043  [-0.143,+0.054]  p=0.3985  p_holm=1.0000 
+  [think] agentic_rag vs zeroshot    n= 150  0.723 -> 0.637  D=-0.086  [-0.167,-0.007]  p=0.0340  p_holm=0.2720 
+
+  class support: Entailment=75  Contradiction=14  NotMentioned=61
+  -> balanced accuracy is bottlenecked by the rarest class (n=14); its recall has SE ~0.134, contributing ~0.045 to the metric.
+
+Significance marks are on Holm-adjusted p: * <.05  ** <.01  *** <.001

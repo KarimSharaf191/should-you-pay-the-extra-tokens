@@ -1,0 +1,88 @@
+====================================================================================================
+Token usage and cost - dev n=1037 seed=0
+====================================================================================================
+completion tokens INCLUDE reasoning tokens; cost uses completion alone to avoid double-counting.
+
+matrix-agentic_rag | qwen3-8b | n=1037
+    prompt tok   mean=    1637.1  med=   1632.0  min=     362  max=     3653
+    compl tok    mean=      35.3  med=     30.0  min=      11  max=      147
+    total tok    mean=    1672.4  med=   1672.0  min=     378  max=     3682
+    steps        mean=       3.6  med=      4.0  min=       2  max=        6
+    ret spans    mean=      12.8  med=     15.0  min=       5  max=       25
+    cost USD     mean=  0.000208  med= 0.000209  min=0.000050  max= 0.000444
+                 RUN TOTAL = $0.2153   (source: listprice/recorded)
+
+matrix-cot | qwen3-8b | n=1037
+    prompt tok   mean=    2583.2  med=   2404.0  min=     701  max=     6652
+    compl tok    mean=     129.1  med=    125.0  min=      56  max=      273
+    total tok    mean=    2712.4  med=   2531.0  min=     774  max=     6850
+    cost USD     mean=  0.000361  med= 0.000339  min=0.000115  max= 0.000873
+                 RUN TOTAL = $0.3743   (source: listprice)
+
+matrix-dspy | qwen3-8b | n=1037
+    prompt tok   mean=    2556.3  med=   2377.0  min=     674  max=     6625
+    compl tok    mean=      14.5  med=     15.0  min=      11  max=       15
+    total tok    mean=    2570.9  med=   2392.0  min=     689  max=     6639
+    cost USD     mean=  0.000306  med= 0.000285  min=0.000085  max= 0.000781
+                 RUN TOTAL = $0.3170   (source: listprice)
+
+matrix-rag | qwen3-8b | n=1037
+    prompt tok   mean=     511.3  med=    494.0  min=     251  max=      974
+    compl tok    mean=       3.5  med=      4.0  min=       3  max=        4
+    total tok    mean=     514.8  med=    498.0  min=     255  max=      977
+    ret spans    mean=       8.0  med=      8.0  min=       8  max=        8
+    cost USD     mean=  0.000061  med= 0.000060  min=0.000031  max= 0.000115
+                 RUN TOTAL = $0.0637   (source: listprice/recorded)
+
+matrix-think-agentic_rag | qwen3-8b | n=1037
+    prompt tok   mean=     565.0  med=    513.0  min=     129  max=     1727
+    compl tok    mean=     747.4  med=    677.0  min=     304  max=     3417
+    reason tok   mean=     717.5  med=    647.0  min=     265  max=     3393
+    total tok    mean=    1312.5  med=   1192.0  min=     447  max=     3898
+    steps        mean=       2.1  med=      2.0  min=       1  max=        4
+    ret spans    mean=       5.6  med=      5.0  min=       0  max=       15
+    cost USD     mean=  0.000406  med= 0.000368  min=0.000160  max= 0.001610
+                 RUN TOTAL = $0.4212   (source: recorded)
+
+matrix-think-cot | qwen3-8b | n=1037
+    prompt tok   mean=    2579.3  med=   2400.0  min=     697  max=     6648
+    compl tok    mean=     592.4  med=    516.0  min=     243  max=     2436
+    reason tok   mean=     465.6  med=    383.0  min=     158  max=     2223
+    total tok    mean=    3171.7  med=   2962.0  min=    1043  max=     7905
+    cost USD     mean=  0.000571  med= 0.000533  min=0.000239  max= 0.001509
+                 RUN TOTAL = $0.5924   (source: listprice)
+
+matrix-think-dspy | qwen3-8b | n=1037
+    prompt tok   mean=    2552.3  med=   2373.0  min=     670  max=     6621
+    compl tok    mean=     494.7  med=    404.0  min=     188  max=     1925
+    reason tok   mean=     475.2  med=    384.0  min=     169  max=     1905
+    total tok    mean=    3047.1  med=   2819.0  min=     963  max=     7537
+    cost USD     mean=  0.000524  med= 0.000483  min=0.000211  max= 0.001399
+                 RUN TOTAL = $0.5431   (source: listprice)
+
+matrix-think-rag | qwen3-8b | n=1037
+    prompt tok   mean=     503.3  med=    486.0  min=     243  max=      966
+    compl tok    mean=     478.3  med=    386.0  min=     147  max=     2918
+    reason tok   mean=     469.8  med=    377.0  min=     139  max=     2909
+    total tok    mean=     981.6  med=    903.0  min=     463  max=     3471
+    ret spans    mean=       8.0  med=      8.0  min=       8  max=        8
+    cost USD     mean=  0.000277  med= 0.000233  min=0.000115  max= 0.001392
+                 RUN TOTAL = $0.2868   (source: recorded)
+
+matrix-think-zeroshot | qwen3-8b | n=1037
+    prompt tok   mean=    2439.3  med=   2260.0  min=     557  max=     6508
+    compl tok    mean=     548.6  med=    410.0  min=     147  max=     5065
+    reason tok   mean=     536.4  med=    401.0  min=     139  max=     2543
+    total tok    mean=    2988.0  med=   2808.0  min=     801  max=     8278
+    cost USD     mean=  0.000535  med= 0.000482  min=0.000176  max= 0.002463
+                 RUN TOTAL = $0.5548   (source: recorded)
+
+matrix-zeroshot | qwen3-8b | n=1037
+    prompt tok   mean=    2447.3  med=   2268.0  min=     565  max=     6516
+    compl tok    mean=       3.4  med=      3.0  min=       3  max=        4
+    total tok    mean=    2450.7  med=   2272.0  min=     569  max=     6519
+    cost USD     mean=  0.000288  med= 0.000267  min=0.000068  max= 0.000764
+                 RUN TOTAL = $0.2985   (source: listprice)
+
+----------------------------------------------------------------------------------------------------
+GRAND TOTAL across all listed runs: $3.6672

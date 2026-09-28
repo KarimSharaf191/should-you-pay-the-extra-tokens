@@ -1,0 +1,70 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-09-14 13:53:07
+Split     : dev | stratified n=150 | seed=0
+Endpoint  : https://openrouter.ai/api/v1
+Thinking  : ON (native reasoning enabled)
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                  0.737        0.753        0.716        0.676        0.686
+  llama-3.2-3b-instruct                     0.319        0.299        0.266        0.373        0.437
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                  0.723        0.738        0.705        0.681        0.637
+  llama-3.2-3b-instruct                     0.305        0.286        0.248        0.350        0.404
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                   2924         3006         3091          963         1307
+  llama-3.2-3b-instruct                      2357         2478         2598          519          879
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                    567          536          594          463          746
+  llama-3.2-3b-instruct                         5           14          108            5           26
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b                                    547          517          465          455          719
+  llama-3.2-3b-instruct                         0            0            0            0            0
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-8b               zeroshot  n= 150 err=  0 bal=0.737 f1=0.723  10.8s
+      F1[Enta]=0.797  F1[Cont]=0.600  F1[NotM]=0.773
+      tokens: prompt=2357 completion=567 reasoning=547 think=0 (<think> in 0/150)
+  qwen3-8b               dspy      n= 150 err=  0 bal=0.753 f1=0.738  10.0s
+      F1[Enta]=0.806  F1[Cont]=0.600  F1[NotM]=0.809
+      tokens: prompt=2470 completion=536 reasoning=517 think=0 (<think> in 0/150)
+  qwen3-8b               cot       n= 150 err=  0 bal=0.716 f1=0.705  11.0s
+      F1[Enta]=0.785  F1[Cont]=0.552  F1[NotM]=0.779
+      tokens: prompt=2497 completion=594 reasoning=465 think=0 (<think> in 0/150)
+  qwen3-8b               rag       n= 150 err=  0 bal=0.676 f1=0.681  10.9s
+      F1[Enta]=0.759  F1[Cont]=0.538  F1[NotM]=0.745
+      tokens: prompt=499 completion=463 reasoning=455 think=0 (<think> in 0/150)
+  qwen3-8b               agentic_rag n= 150 err=  0 bal=0.686 f1=0.637  17.0s
+      F1[Enta]=0.708  F1[Cont]=0.450  F1[NotM]=0.754
+      tokens: prompt=561 completion=746 reasoning=719 think=0 (<think> in 0/150)
+  llama-3.2-3b-instruct  zeroshot  n= 150 err=  0 bal=0.319 f1=0.305   1.2s
+      F1[Enta]=0.493  F1[Cont]=0.000  F1[NotM]=0.423
+      tokens: prompt=2352 completion=5 reasoning=0 think=0 (<think> in 0/150)
+  llama-3.2-3b-instruct  dspy      n= 150 err=  0 bal=0.299 f1=0.286   0.5s
+      F1[Enta]=0.421  F1[Cont]=0.000  F1[NotM]=0.438
+      tokens: prompt=2464 completion=14 reasoning=0 think=0 (<think> in 0/150)
+  llama-3.2-3b-instruct  cot       n= 150 err=  0 bal=0.266 f1=0.248   1.3s
+      F1[Enta]=0.520  F1[Cont]=0.000  F1[NotM]=0.224
+      tokens: prompt=2490 completion=108 reasoning=0 think=0 (<think> in 0/150)
+  llama-3.2-3b-instruct  rag       n= 150 err=  0 bal=0.373 f1=0.350   5.6s
+      F1[Enta]=0.381  F1[Cont]=0.105  F1[NotM]=0.565
+      tokens: prompt=515 completion=5 reasoning=0 think=0 (<think> in 0/150)
+  llama-3.2-3b-instruct  agentic_rag n= 150 err=  0 bal=0.437 f1=0.404   8.2s
+      F1[Enta]=0.460  F1[Cont]=0.164  F1[NotM]=0.587
+      tokens: prompt=853 completion=26 reasoning=0 think=0 (<think> in 0/150)

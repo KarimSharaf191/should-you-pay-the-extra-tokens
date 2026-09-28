@@ -1,0 +1,53 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-09-14 13:30:57
+Split     : dev | stratified n=150 | seed=0
+Endpoint  : https://openrouter.ai/api/v1
+Thinking  : OFF
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag          rlm
+  qwen3-8b                                  0.608        0.549        0.684        0.597        0.648        0.523
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag          rlm
+  qwen3-8b                                  0.630        0.562        0.647        0.613        0.562        0.523
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag          rlm
+  qwen3-8b                                   2368         2488         2632          511         1656        11869
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag          rlm
+  qwen3-8b                                      3           15          131            4           35         3189
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag          rlm
+  qwen3-8b                                      0            0            0            0            0            0
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-8b               zeroshot  n= 150 err=  0 bal=0.608 f1=0.630   1.7s
+      F1[Enta]=0.775  F1[Cont]=0.455  F1[NotM]=0.661
+      tokens: prompt=2365 completion=3 reasoning=0 think=0 (<think> in 0/150)
+  qwen3-8b               dspy      n= 150 err=  0 bal=0.549 f1=0.562   1.3s
+      F1[Enta]=0.656  F1[Cont]=0.381  F1[NotM]=0.649
+      tokens: prompt=2474 completion=15 reasoning=0 think=0 (<think> in 0/150)
+  qwen3-8b               cot       n= 150 err=  0 bal=0.684 f1=0.647   3.8s
+      F1[Enta]=0.738  F1[Cont]=0.500  F1[NotM]=0.701
+      tokens: prompt=2501 completion=131 reasoning=0 think=0 (<think> in 0/150)
+  qwen3-8b               rag       n= 150 err=  0 bal=0.597 f1=0.613   5.7s
+      F1[Enta]=0.774  F1[Cont]=0.333  F1[NotM]=0.731
+      tokens: prompt=507 completion=4 reasoning=0 think=0 (<think> in 0/150)
+  qwen3-8b               agentic_rag n= 150 err=  0 bal=0.648 f1=0.562  14.4s
+      F1[Enta]=0.731  F1[Cont]=0.468  F1[NotM]=0.488
+      tokens: prompt=1620 completion=35 reasoning=0 think=0 (<think> in 0/150)
+  qwen3-8b               rlm       n= 150 err=  0 bal=0.523 f1=0.523  61.8s
+      F1[Enta]=0.564  F1[Cont]=0.500  F1[NotM]=0.504
+      tokens: prompt=8680 completion=3189 reasoning=0 think=0 (<think> in 0/150)

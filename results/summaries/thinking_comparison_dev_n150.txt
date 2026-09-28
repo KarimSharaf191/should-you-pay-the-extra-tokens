@@ -1,0 +1,65 @@
+====================================================================================================
+ContractNLI — thinking OFF vs ON   |   dev n=150 seed=0
+====================================================================================================
+Same instances in both arms, so OFF/ON is a paired comparison.
+
+model                 condition      bal OFF   bal ON   delta     F1 OFF   F1 ON     tok OFF   tok ON     gen ON reas ON
+------------------------------------------------------------------------------------------------------------------------
+qwen3-8b              zeroshot         0.608    0.737  +0.130      0.630   0.723        2368     2924        567     547
+qwen3-8b              dspy             0.549    0.753  +0.204      0.562   0.738        2488     3006        536     517
+qwen3-8b              cot              0.684    0.716  +0.031      0.647   0.705        2632     3091        594     465
+qwen3-8b              rag              0.597    0.676  +0.080      0.613   0.681         511      963        463     455
+qwen3-8b              agentic_rag      0.648    0.686  +0.039      0.562   0.637        1656     1307        746     719
+
+llama-3.2-3b-instruct zeroshot         0.285    0.319  +0.035      0.265   0.305        2360     2357          5       0
+llama-3.2-3b-instruct dspy             0.281    0.299  +0.019      0.267   0.286        2478     2478         14       0
+llama-3.2-3b-instruct cot              0.310    0.266  -0.045      0.303   0.248        2597     2598        108       0
+llama-3.2-3b-instruct rag              0.351    0.373  +0.022      0.317   0.350         525      519          5       0
+llama-3.2-3b-instruct agentic_rag      0.521    0.437  -0.084      0.427   0.404         938      879         26       0
+
+qwen3-8b              rlm              0.523      n/a       -      0.523       -       11869        -          -       -
+  (RLM was only run thinking-off; the rlm library reports no reasoning breakdown)
+
+====================================================================================================
+PAIRED DISAGREEMENT (thinking ON vs OFF, same instances)
+====================================================================================================
+model                 condition      shared  ON right / OFF wrong  OFF right / ON wrong
+---------------------------------------------------------------------------------------
+qwen3-8b              zeroshot          150                    23                    14
+qwen3-8b              dspy              150                    31                     8
+qwen3-8b              cot               150                    19                     9
+qwen3-8b              rag               150                    13                    12
+qwen3-8b              agentic_rag       150                    35                    24
+
+llama-3.2-3b-instruct zeroshot          150                    22                    14
+llama-3.2-3b-instruct dspy              150                    12                     8
+llama-3.2-3b-instruct cot               150                    12                    17
+llama-3.2-3b-instruct rag               150                    10                    16
+llama-3.2-3b-instruct agentic_rag       150                    16                    15
+
+====================================================================================================
+PER-CLASS F1
+====================================================================================================
+model                 condition      arm     Entailment  Contradiction   NotMentioned
+------------------------------------------------------------------------------------------
+qwen3-8b              zeroshot       off          0.775          0.455          0.661
+qwen3-8b              zeroshot        on          0.797          0.600          0.773
+qwen3-8b              dspy           off          0.656          0.381          0.649
+qwen3-8b              dspy            on          0.806          0.600          0.809
+qwen3-8b              cot            off          0.738          0.500          0.701
+qwen3-8b              cot             on          0.785          0.552          0.779
+qwen3-8b              rag            off          0.774          0.333          0.731
+qwen3-8b              rag             on          0.759          0.538          0.745
+qwen3-8b              agentic_rag    off          0.731          0.468          0.488
+qwen3-8b              agentic_rag     on          0.708          0.450          0.754
+
+llama-3.2-3b-instruct zeroshot       off          0.391          0.000          0.405
+llama-3.2-3b-instruct zeroshot        on          0.493          0.000          0.423
+llama-3.2-3b-instruct dspy           off          0.382          0.000          0.419
+llama-3.2-3b-instruct dspy            on          0.421          0.000          0.438
+llama-3.2-3b-instruct cot            off          0.535          0.087          0.286
+llama-3.2-3b-instruct cot             on          0.520          0.000          0.224
+llama-3.2-3b-instruct rag            off          0.388          0.000          0.561
+llama-3.2-3b-instruct rag             on          0.381          0.105          0.565
+llama-3.2-3b-instruct agentic_rag    off          0.471          0.323          0.487
+llama-3.2-3b-instruct agentic_rag     on          0.460          0.164          0.587

@@ -1,0 +1,1545 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,backgrounds,arrows.meta,calc}
+\usepackage{booktabs}   % professional tables: \toprule, \midrule, \bottomrule, \cmidrule
+\usepackage{amsmath}
+\usepackage{float}      % provides [H] to force float placement
+\usepackage{placeins}   % provides \FloatBarrier to keep floats within a section
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+\usepackage{multirow}   % required by the appendix result tables
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{Should You Pay the Extra Tokens? A Cost-Matched Evaluation of Inference-Time Scaffolds for Long-Context Claim Verification with Small LLMs}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+
+Deciding whether a claim is supported, contradicted, or simply left unaddressed by a source document underlies tasks as varied as contract review, scientific fact-checking, and verifying the outputs of language models themselves \citep{jacovi2024coverbench}. When the source is long (a full non-disclosure agreement, an annual financial report, or a multi-section document), the task becomes substantially harder: the evidence bearing on a single claim may sit in one clause, be dispersed across distant passages, or only emerge from combining several pieces of structured and unstructured content \citep{koreeda-manning-2021-contractnli, zhao-etal-2024-findver}.
+
+As Large Language Models (LLMs) have extended their context windows to hundreds of thousands of tokens \cite{}, recent work has begun to probe how well long-context LLMs perform claim verification \cite{}. The practical value of these models grows considerably when the capability is available in open-weight, small-scale long-context models that practitioners can self-host. Yet their reliability on complex long-context claim verification remains underexplored, and recent work shows that they still lag behind their larger and proprietary counterparts \cite{}.
+
+To close this gap, a large body of recent work has post-trained small LLMs on synthetically generated claims \cite{}. The gains, however, are inconsistent across domains: in long-context settings, improvements largely materialize only on in-domain documents. This limits the usefulness of such models in high-stakes domains, where suitable training data may be unavailable. Post-training long-context models is also computationally demanding.
+An alternative is to \textit{augment the model with an inference-time scaffold: a test-time procedure — chain-of-thought prompting, retrieval, or an agentic loop, among others — that spends additional computation in the hope of a better verdict, without updating any parameters.} that intervenes on the context, the problem structure, or the model's compute trajectory.  But in long-context claim verification it remains unclear how much these techniques actually help, especially since they can consume substantial additional compute tokens. Understanding when the pay-off justifies that extra spend is therefore a necessary step toward assessing the practical utility of these models.
+
+% With Large language Models (LLMs) extended context length to thousands of tokens \cite{}, recent work explored the ability of long-context LLMs in the context of claim verification \cite{}. The utility of long-context LLMs can substantially improve with accessibility to openweight small longcontext LLMs. However the reliability of these models in complex long-context claim verification is underexplored and recent work shows that they are not matching their larger or proprietary counterparts \cite{}.
+
+% To improve thecapabailities of small LLMs, a large portion of recent approaches centred around post training the models on synthetic claims \cite{}. However , the findings aren't consistent across domains, with improvements in long-context settings mainly emrges under in-domain documents. This limits the ability of utilziing these models in high stakes domains where obtaining data might not always be feasible. Moreover, post-training long-context models can be computationally challenging.
+
+% An alternative approach is to augment the model with inference time scaffold that either intervene on the context-level, problem structure, or compute trajectory of the model. These approaches can improve the model capabalities without the need for parameter updates. However, in long-context claim verification settings its still unknown how much these techniques can benefit the model, particularly when these techniques can consume extra compute tokens. Therefore, understanding when the pay-off under these techniques is a necessary research gap towards understanding the utility of these models.
+
+% A now-standard response is to wrap a base model in an \emph{inference-time
+% scaffold}: a procedure that spends additional computation at test time in the
+% hope of a better answer. Chain-of-thought prompting elicits intermediate
+% reasoning before a verdict \citep{wei2022cot}; dedicated reasoning
+% (``thinking'') models emit long deliberation traces
+% \citep{deepseekai2025r1, muennighoff2025s1}; retrieval-augmented
+% generation injects retrieved passages to shorten the effective context
+% \citep{lewis2020rag}; and agentic or code-driven loops let the model traverse
+% the document iteratively \citep{yao2023react, zhang2025rlm}. Each of these
+% scaffolds promises sharper verdicts, and each of them costs tokens.
+
+
+In this work, we empirically investigate the utility of a variety of these scaffols in complex longpcontext verification settings with small LLMs ($<10B$). In particular, our analysis go beyond standard performance-based evaluation study to answer \textit{when does the inference time scaffolds can be worth their extra cost through a cost matched evaluation study.} We answe
+
+% These scaffolds, however, are almost always compared on accuracy alone, as
+% though their token consumption were free. It is not. For the small,
+% open-weight models that practitioners increasingly self-host, every token is
+% latency, memory, and compute that someone pays for, and the scaffolds under
+% comparison can differ in cost by an order of magnitude. A reasoning trace that
+% buys two points of accuracy while spending ten times the tokens of a zero-shot
+% prompt may or may not be a good trade, and the literature rarely says which.
+% The useful question is therefore not ``which scaffold is most accurate?'' but
+% ``which scaffold is most accurate \emph{per token}, and at the budget I can
+% afford, should I pay for the extra tokens at all?''
+
+We answer this empirically through a \emph{cost-matched} evaluation of
+inference-time scaffolds for long-context claim verification with small LLMs.
+Using small open-weight models from the Qwen3 family \citep{yang2025qwen3} and
+Llama family \citep{grattafiori2024llama3} (all under 10B parameters) across
+three benchmarks that span the legal, general-reasoning,
+and financial domains (ContractNLI
+\citep{koreeda-manning-2021-contractnli}, CoverBench
+\citep{jacovi2024coverbench}, and FinDVer \citep{zhao-etal-2024-findver}), we
+evaluate five scaffolds spanning raw zero-shot prompting, chain-of-thought,
+explicit reasoning, and retrieval- and agent-augmented variants. To keep the
+comparison about the scaffolds rather than about prompt wording, every
+condition is implemented in a single declarative framework
+\citep{khattab2023dspy}, and we instrument each to record the tokens consumed
+in reaching a verdict. We report performance not as a single number but as a
+\emph{cost--accuracy frontier} that makes the trade-off between spend and
+quality explicit.
+
+\paragraph{Research questions.}
+We organize the study around five questions:
+\begin{itemize}
+    \item[\textbf{RQ1}] \textbf{(Frontier)} Which inference-time scaffolds lie
+    on the cost--accuracy frontier for long-context claim verification with
+    small LLMs, and do the more expensive scaffolds earn the extra tokens they
+    spend, or are they dominated by cheaper alternatives?
+    \item[\textbf{RQ2}] \textbf{(Scaling)} Is the cost--accuracy ordering of
+    scaffolds stable as the base model scales within the small ($<$10B)
+    regime, or does the most cost-effective scaffold change with model size?
+    \item[\textbf{RQ3}] \textbf{(Difficulty)} How does the benefit of a
+    scaffold vary with claim difficulty (evidence locality and hop count) and
+    with context length?
+    \item[\textbf{RQ4}] \textbf{(Faithfulness)} When a scaffold generates
+    intermediate reasoning, does that reasoning reflect the evidence the
+    verdict actually depends on, or is the extra spend merely decorative?
+    \item[\textbf{RQ5}] \textbf{(Robustness)} Does a scaffold's apparent
+    advantage survive controls for confounds, specifically claim-difficulty
+    mix, the position of evidence in the document (lost-in-the-middle), and
+    chance-corrected agreement, or is it an artifact of dataset composition or
+    label priors?
+\end{itemize}
+
+Our contributions are:
+\begin{itemize}
+    \item A \textbf{cost-matched evaluation protocol} that compares
+    inference-time scaffolds at equalized token budgets rather than on accuracy
+    in isolation, treating token cost as a first-class metric alongside
+    balanced accuracy and macro-$F_1$ (RQ1).
+    \item An empirical \textbf{cost--accuracy frontier} for five scaffolds on
+    long-context claim verification with small open-weight models, computed
+    across the legal, general-reasoning, and financial domains, showing
+    where (and whether) extra inference-time tokens are justified, and whether
+    the frontier is stable across model scale (RQ1, RQ2).
+    \item An \textbf{analysis of scaffold behaviour by claim difficulty}
+    (evidence locality and hop count), context length, and base-model scale,
+    together with a faithfulness sub-study on a gold-evidence subset examining
+    whether generated reasoning reflects the actual basis for the verdict
+    (RQ3, RQ4).
+    \item A \textbf{robustness analysis} that re-examines the frontier under
+    difficulty stratification, evidence-position (lost-in-the-middle) controls,
+    and chance-corrected agreement, separating genuine scaffold gains from
+    artifacts of dataset composition and label priors (RQ5).
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Claim verification over long and hybrid documents.}
+Automated fact verification was popularized by FEVER
+\citep{thorne2018fever}, which pairs short claims with sentence-level evidence
+drawn from Wikipedia. Document-grounded verification raises the difficulty by
+requiring a verdict against a single, often long source rather than a curated
+evidence pool. ContractNLI \citep{koreeda-manning-2021-contractnli} casts
+contract review as document-level natural language inference with a
+three-way label set, while FinDVer
+\citep{zhao-etal-2024-findver} targets explainable verification over financial
+filings that interleave long passages of text with dozens of tables, and
+CoverBench \citep{jacovi2024coverbench} aggregates complex claims that demand
+multi-step reasoning across domains. These benchmarks establish the task we
+study, but they are typically used to rank \emph{models} by accuracy; we
+instead hold the benchmarks fixed and rank \emph{scaffolds} by accuracy per
+token.
+
+\paragraph{Inference-time scaffolds and test-time compute.}
+A large body of work spends additional computation at inference to improve a
+fixed model. Chain-of-thought prompting elicits intermediate reasoning before
+an answer \citep{wei2022cot}, and self-consistency aggregates several sampled
+reasoning paths \citep{wang2023selfconsistency}. More recently, dedicated
+reasoning models are trained to emit long deliberation traces
+\citep{deepseekai2025r1}, and test-time scaling makes the length of those
+traces an explicit control knob \citep{muennighoff2025s1}. This literature
+consistently demonstrates that more test-time compute can raise accuracy, but
+it almost always reports accuracy in isolation. The question we foreground,
+whether the extra tokens are worth their cost at a fixed budget, is largely
+left open; our cost-matched protocol is designed to answer it directly.
+
+\paragraph{Retrieval augmentation.}
+Retrieval-augmented generation supplies a model with passages fetched from an
+external or in-document store \citep{lewis2020rag}, which for long-context
+verification doubles as a way to shrink the effective context the model must
+read. Beyond single-shot retrieval, adaptive variants such as Self-RAG learn
+when to retrieve and how to critique what they read
+\citep{asai2024selfrag}, and agentic retrieval interleaves search with
+reasoning over multiple turns. These methods trade input tokens (retrieved
+passages, repeated context) for potentially fewer wasted output tokens, a
+trade our cost accounting in Eq.~\eqref{eq:cost} captures on both sides.
+
+\paragraph{Agentic and recursive approaches.}
+Tool-using agents interleave reasoning with actions over an environment
+\citep{yao2023react}, and code-driven or recursive procedures let a model
+decompose and traverse a long document programmatically. Recursive language
+models \citep{zhang2025rlm} push this to the limit by issuing nested model
+calls over chunks of the input. Such procedures occupy the high-cost end of
+the spectrum we study: they can issue many calls and accumulate large token
+totals, which makes them the most important case for asking whether the spend
+is justified.
+
+\paragraph{Cost- and efficiency-aware evaluation.}
+A growing body of work measures efficiency alongside quality, reporting
+latency, FLOPs, or monetary cost. FrugalGPT \citep{chen2024frugalgpt}
+showed that cascading LLM APIs under a budget can match the strongest
+single model at a fraction of its cost; \citet{kapoor2025agents} argue
+that accuracy-only agent benchmarks produce needlessly complex, costly
+systems and mistaken conclusions about the sources of gains, advocating
+evaluation on a cost--accuracy Pareto frontier; and the Holistic Agent
+Leaderboard \citep{kapoor2026hal} operationalizes this at scale, finding
+that the most expensive model reaches the frontier on only one of nine
+agentic benchmarks. These efforts, however, rank \emph{models} or
+\emph{agent systems} against one another. What is still missing for
+\emph{inference-time scaffolds} is a comparison that holds the base model
+fixed, controls prompt construction, and reports a single cost--accuracy
+frontier across scaffolds, model scales, and domains, with token cost
+measured on both the input and output side; that is the comparison this
+paper provides. We also adopt chance-corrected agreement as a guard
+against metrics that overstate discriminative ability: large-scale
+evaluation work shows that raw agreement can exceed Cohen's $\kappa$ by
+tens of points because it ignores the label marginals
+\citep{norman2026reliability}. We treat token count as a first-class
+metric on equal footing with balanced accuracy and macro-$F_1$, and
+organize the scaffolds we compare with the taxonomy of
+\S\ref{sec:taxonomy} so that substitutable and composable interventions
+can be read off directly.
+
+\section{A Taxonomy of Inference-Time Scaffolds}
+\label{sec:taxonomy}
+\definecolor{locusContext}{HTML}{1D9E75}  % teal  - context construction
+\definecolor{locusStruct}{HTML}{534AB7}   % purple- problem structure
+\definecolor{locusTraj}{HTML}{D85A30}      % coral - compute trajectory
+\definecolor{neutralGray}{HTML}{5F5E5A}
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    >={Stealth[length=2mm]},
+    % --- box styles -------------------------------------------------
+    pipe/.style   ={draw=neutralGray, fill=neutralGray!8, rounded corners=2pt,
+                    minimum height=6mm, inner sep=3pt, font=\footnotesize},
+    locus/.style  ={draw, rounded corners=3pt, line width=0.5pt,
+                    minimum width=38mm, minimum height=11mm, align=center,
+                    inner sep=3pt},
+    scaf/.style   ={draw, rounded corners=3pt, line width=0.5pt,
+                    minimum width=38mm, minimum height=12mm, align=center,
+                    inner sep=3pt},
+    adaptive/.style={dashed},          % dashed border = adaptive control
+    sub/.style    ={font=\scriptsize\itshape, text=neutralGray},
+    ax/.style     ={draw=neutralGray, dashed, rounded corners=3pt,
+                    line width=0.5pt, inner sep=4pt},
+    edge/.style   ={->, draw=neutralGray, line width=0.5pt},
+]
+
+% ---------- top: frozen-model pipeline -----------------------------
+\node[pipe] (p1) {claim + document};
+\node[pipe, right=6mm of p1] (p2) {context};
+\node[pipe, right=6mm of p2] (p3) {decode};
+\node[pipe, right=6mm of p3] (p4) {verdict};
+\draw[->,draw=neutralGray,line width=0.5pt] (p1)--(p2);
+\draw[->,draw=neutralGray,line width=0.5pt] (p2)--(p3);
+\draw[->,draw=neutralGray,line width=0.5pt] (p3)--(p4);
+\node[sub, above=1mm of p2.north west, anchor=south west, xshift=-6mm]
+      {frozen model pipeline (no parameter updates)};
+
+% ---------- locus header row ---------------------------------------
+\node[locus, draw=locusContext, fill=locusContext!8,
+      below=14mm of p1.south west, anchor=north west] (Lc)
+      {\textbf{context construction}\\[1pt]\textit{\footnotesize what the model reads}};
+\node[locus, draw=locusStruct, fill=locusStruct!8, right=8mm of Lc] (Ls)
+      {\textbf{problem structure}\\[1pt]\textit{\footnotesize how the task is framed}};
+\node[locus, draw=locusTraj, fill=locusTraj!8, right=8mm of Ls] (Lt)
+      {\textbf{compute trajectory}\\[1pt]\textit{\footnotesize how much it generates}};
+
+% pipeline-stage -> locus connectors
+\draw[edge] (p2.south) .. controls +(0,-4mm) and +(0,4mm) .. (Lc.north);
+\draw[edge] (p3.south) .. controls +(0,-4mm) and +(0,4mm) .. (Lt.north);
+\draw[edge] ($(p2.south)!0.5!(p3.south)$) .. controls +(0,-4mm) and +(0,4mm) .. (Ls.north);
+
+% ---------- scaffolds under each locus -----------------------------
+% context construction
+\node[scaf, draw=locusContext, fill=locusContext!5, below=7mm of Lc] (rag1)
+      {standard RAG};
+\node[scaf, draw=locusContext, fill=locusContext!5, adaptive, below=7mm of rag1] (rag2)
+      {agentic / graph RAG};
+% problem structure
+\node[scaf, draw=locusStruct, fill=locusStruct!5, below=7mm of Ls] (dec)
+      {claim decomposition};
+% compute trajectory
+\node[scaf, draw=locusTraj, fill=locusTraj!5, below=7mm of Lt] (rea)
+      {extended reasoning};
+\node[scaf, draw=locusTraj, fill=locusTraj!5, adaptive, below=7mm of rea] (rec)
+      {recursive calls};
+
+\draw[edge] (Lc.south) -- (rag1.north);
+\draw[edge] (Ls.south) -- (dec.north);
+\draw[edge] (Lt.south) -- (rea.north);
+
+% ---------- call-structure glyphs (encode the axis) ----------------
+% single call: one dot ; fan-out: 1->3 ; tree: 1->2->4
+\newcommand{\glyphsingle}[1]{%
+  \begin{scope}[shift={(#1)}]
+    \fill[neutralGray] (0,0) circle (1.1pt);
+  \end{scope}}
+\newcommand{\glyphfan}[1]{%
+  \begin{scope}[shift={(#1)},neutralGray,line width=0.4pt]
+    \fill (0,1.6mm) circle (1pt);
+    \draw (0,1.6mm)--(-2mm,-1.6mm); \draw (0,1.6mm)--(0,-1.6mm); \draw (0,1.6mm)--(2mm,-1.6mm);
+    \fill (-2mm,-1.6mm) circle (0.9pt); \fill (0,-1.6mm) circle (0.9pt); \fill (2mm,-1.6mm) circle (0.9pt);
+  \end{scope}}
+\newcommand{\glyphtree}[1]{%
+  \begin{scope}[shift={(#1)},neutralGray,line width=0.4pt]
+    \fill (0,2mm) circle (1pt);
+    \draw (0,2mm)--(-1.6mm,0); \draw (0,2mm)--(1.6mm,0);
+    \fill (-1.6mm,0) circle (0.9pt); \fill (1.6mm,0) circle (0.9pt);
+    \draw (-1.6mm,0)--(-2.6mm,-2mm); \draw (-1.6mm,0)--(-0.6mm,-2mm);
+    \draw (1.6mm,0)--(0.6mm,-2mm); \draw (1.6mm,0)--(2.6mm,-2mm);
+    \fill (-2.6mm,-2mm) circle (0.8pt); \fill (-0.6mm,-2mm) circle (0.8pt);
+    \fill (0.6mm,-2mm) circle (0.8pt); \fill (2.6mm,-2mm) circle (0.8pt);
+  \end{scope}}
+
+% place a glyph just OUTSIDE the right edge of each scaffold box
+\glyphsingle{$(rag1.east)+(4mm,0)$}
+\glyphtree{$(rag2.east)+(4mm,0)$}
+\glyphfan{$(dec.east)+(4mm,0)$}
+\glyphsingle{$(rea.east)+(4mm,0)$}
+\glyphtree{$(rec.east)+(4mm,0)$}
+
+% ---------- bottom: cross-cutting axes legend ----------------------
+% Anchored a fixed distance BELOW the lowest scaffold boxes (rag2/rec),
+% spanning from the left column to the right column. No \fit -- the box
+% is sized by its tabular content, so it cannot collide with the
+% scaffolds above it.
+\coordinate (legtop) at ($(rag2.south west)+(0,-12mm)$);
+\node[ax, anchor=north west, inner sep=8pt] (axbox) at (legtop) {%
+  \begin{minipage}{132mm}
+  {\scriptsize\itshape\color{neutralGray} cross-cutting axes (apply to every scaffold)}\\[4pt]
+  \footnotesize\color{black}%
+  \textbf{control:}~%
+  \tikz[baseline=-0.5ex]{\draw[neutralGray,line width=0.5pt,rounded corners=1pt] (0,-0.6ex) rectangle (1.6ex,0.9ex);}~static\quad
+  \tikz[baseline=-0.5ex]{\draw[neutralGray,dashed,line width=0.5pt,rounded corners=1pt] (0,-0.6ex) rectangle (1.6ex,0.9ex);}~adaptive
+  \hfill
+  \textbf{call:} single / fan-out / tree \\[3pt]
+  {\scriptsize\itshape\color{neutralGray}%
+   glyph beside each box encodes call structure;\ \
+   adaptive control + tree-shaped calls predict higher token cost.}%
+  \end{minipage}%
+};
+
+\end{tikzpicture}
+\caption{%
+A taxonomy of inference-time scaffolds organized by \emph{locus of
+intervention}: the stage of the frozen-model pipeline each scaffold
+modifies. The three loci (context construction, problem structure,
+compute trajectory) are exhaustive over the inference pipeline, which
+lets us state precisely which scaffolds are substitutable (same locus)
+and which compose (different loci). Two cross-cutting axes (control
+flow and call structure) describe \emph{how} a scaffold acts: border
+style encodes static vs.\ adaptive control and the glyph encodes call
+structure.
+% The cost-prediction note makes the taxonomy an
+% instrument: adaptive control and tree-shaped call structures forecast
+% the higher token cost we observe empirically (\S\ref{sec:results}).%
+\label{fig:taxonomy}}
+\end{figure*}
+
+We organize the scaffolds we study along a single axis: the \emph{locus of
+intervention}, i.e.\ which stage of the frozen-model pipeline a scaffold
+modifies. A base model turns a claim and document into a verdict in three
+stages: it assembles the \emph{context} it reads, it is given a
+\emph{problem structure} that frames the task, and it follows a
+\emph{compute trajectory} as it decodes. Every inference-time scaffold we are
+aware of intervenes at one of these three loci, which makes the partition
+exhaustive over the inference pipeline and lets us reason about which scaffolds
+are interchangeable and which combine. Figure~\ref{fig:taxonomy} summarizes the
+scheme.
+
+\paragraph{Loci of intervention.}
+\emph{Context construction} changes what the model reads: standard RAG replaces
+the full document with retrieved passages, and agentic or graph RAG retrieves
+adaptively over several turns. \emph{Problem structure} changes how the task is
+framed without changing the input, as when a claim is decomposed into
+sub-claims that are verified independently and recombined. \emph{Compute
+trajectory} changes how much the model generates on the way to a verdict,
+spanning chain-of-thought, extended reasoning traces, and recursive call
+patterns. Two scaffolds at the same locus are substitutable; scaffolds at
+different loci compose, which is what makes the interaction study of
+\S\ref{sec:results} well defined.
+
+\paragraph{Cross-cutting axes.}
+Two further properties cut across the loci and describe \emph{how} a scaffold
+acts rather than \emph{where}. The first is \emph{control flow}: a scaffold is
+\emph{static} when its procedure is fixed in advance and \emph{adaptive} when
+it decides at run time whether to retrieve, reason further, or stop. The second
+is \emph{call structure}: a scaffold may issue a single call, fan out into
+several independent calls, or build a tree of nested calls. As Figure~\ref{fig:taxonomy}
+indicates, adaptive control and tree-shaped call structures are the strongest
+a priori predictors of high token cost, and our results
+(\S\ref{sec:results}) test whether that cost buys a place on the
+cost--accuracy frontier.
+
+\section{Problem Formulation}
+\label{sec:problem}
+
+\paragraph{Long-context claim verification.}
+An instance of the task is a pair $(c, D)$, where $c$ is a natural-language
+claim and $D = (d_1, \dots, d_n)$ is a source document of $n$ tokens long
+enough to stress the context window of the model under test. A verification
+system is a function $f : (c, D) \mapsto \hat{y} \in \mathcal{Y}$ that assigns
+the claim a verdict from a benchmark-specific label set $\mathcal{Y}$. The
+verdict is grounded strictly in $D$: a claim that is plausible in general but
+unsupported by the document must not be judged supported, which makes the task
+a test of document-grounded reading rather than world knowledge. Our three
+benchmarks instantiate $\mathcal{Y}$ differently: ContractNLI
+\citep{koreeda-manning-2021-contractnli} uses the three-way set
+\textsc{entailed}, \textsc{contradicted}, \textsc{not\,mentioned}, whereas
+CoverBench \citep{jacovi2024coverbench} and FinDVer
+\citep{zhao-etal-2024-findver} use a binary supported/unsupported
+judgement, so we keep $\mathcal{Y}$ abstract here and give the per-benchmark
+label sets in \S\ref{sec:setup}.
+
+\paragraph{Inference-time scaffolds.}
+A scaffold $S$ wraps a fixed base model $M$ and specifies how $(c, D)$ is
+turned into a verdict. Formally, $S$ is a (possibly stochastic) procedure
+$\hat{y} = S_M(c, D)$ that may issue one or more calls to $M$, generate
+intermediate text, retrieve passages from $D$, or invoke external tools before
+emitting $\hat{y}$. Within any single comparison we hold the base model $M$
+fixed across scaffolds, so that differences in behaviour are attributable to
+the scaffold rather than to model capacity. Because we are concerned
+specifically with \emph{small} models, $M$ is drawn from a set of open-weight
+models below 10B parameters, and we additionally vary $M$ across this range to
+test whether the cost--accuracy ordering of scaffolds is stable as the base
+model scales (\S\ref{sec:results}). The scaffolds we study range from a raw
+zero-shot prompt, which
+calls $M$ once, to retrieval- and agent-augmented procedures that make several
+calls and spend tokens on intermediate reasoning, retrieved evidence, or tool
+outputs; \S\ref{sec:taxonomy} organizes them by where in the inference pipeline
+they intervene.
+
+\paragraph{Token cost.}
+Every scaffold consumes tokens. For an instance $(c, D)$ we define its cost as
+\begin{equation}
+    T(S; c, D) = T_{\mathrm{in}}(S; c, D) + T_{\mathrm{out}}(S; c, D),
+    \label{eq:cost}
+\end{equation}
+the total number of input tokens (prompt, retrieved passages, and tool
+outputs) and output tokens (all text generated by $M$, including reasoning
+traces) processed in producing $\hat{y}$. We summarize a scaffold by its mean
+cost $\bar{T}(S)$ over the evaluation set.
+
+\paragraph{Performance.}
+Because the label distributions in these benchmarks are imbalanced, raw
+accuracy is misleading; we report \emph{balanced accuracy} ($\mathrm{BA}$, the
+mean per-class recall) and macro-averaged $F_1$, both of which weight each
+verdict class equally. As a chance-corrected robustness check on the resulting
+rankings, we additionally report Cohen's $\kappa$ between predictions and gold
+labels and the deflation gap $\Delta\kappa = \mathrm{Acc} - \kappa$, which
+guards against a scaffold appearing to win by exploiting the label prior rather
+than by discriminating between verdicts \citep{norman2026reliability}; we
+return to this in \S\ref{sec:robustness}.
+
+\paragraph{Cost-matched comparison.}
+Rather than asking whether a scaffold $S$ outperforms a baseline $S_0$ on
+accuracy, we ask whether it does so \emph{at a comparable token budget}. A
+scaffold $S$ \emph{dominates} another scaffold $S'$ if it attains higher
+balanced accuracy at no greater mean cost, i.e.\ $\mathrm{BA}(S) \geq
+\mathrm{BA}(S')$ and $\bar{T}(S) \leq \bar{T}(S')$ with at least one inequality
+strict. The set of non-dominated $\bigl(\bar{T}(S),\, \mathrm{BA}(S)\bigr)$
+pairs forms the \emph{cost--accuracy frontier}. The central empirical question
+of this paper, \emph{should you pay the extra tokens?}, reduces to whether
+the more expensive scaffolds lie on this frontier or fall below it.
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Model Selection}
+\label{sec:models}
+
+Our study targets the \emph{small, open-weight} regime that practitioners can
+self-host, so every base model has fewer than 10B parameters, ships with
+open weights, and is served locally under identical decoding settings; we
+deliberately exclude proprietary API models because their token accounting and
+internal scaffolding are not observable. To test whether the cost--accuracy
+ordering of scaffolds is a property of the scaffold or of a particular
+checkpoint (RQ2), we vary the base model along two dimensions: \emph{family}
+and \emph{scale}.
+
+For family, we use the Qwen3 series \citep{yang2025qwen3}, its successor
+generation Qwen3.5, and the Llama family \citep{grattafiori2024llama3}, which
+lets us check that conclusions are not an artifact of a single pretraining
+recipe. A
+further advantage of Qwen3 is that it exposes a unified \emph{thinking} and
+\emph{non-thinking} mode within one set of weights, so the
+extended-reasoning scaffold and the zero-shot scaffold can be compared on the
+same checkpoint without confounding model identity with reasoning behaviour.
+For scale, we span the sub-10B range (e.g.\ roughly 4B and 8B dense variants),
+which is the practically relevant band for single-GPU self-hosting and lets us
+trace where, if anywhere, the cost-effective scaffold changes as capacity
+grows.
+
+All models are served with vLLM under matched context-window and decoding
+configurations, and each scaffold is implemented once in DSPy
+\citep{khattab2023dspy} so that the same program runs across every base model.
+Token consumption (Eq.~\eqref{eq:cost}) is logged per instance directly from
+the serving layer, giving an apples-to-apples cost measurement that does not
+depend on model-specific tokenization quirks beyond what the deployed
+tokenizer reports.
+
+
+
+\subsection{Benchmarks}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    >={Stealth[length=1.6mm]},
+    chip/.style ={draw=locusStruct, fill=locusStruct!6, rounded corners=2pt,
+                  line width=0.5pt, minimum width=31mm, minimum height=10mm},
+    tag/.style  ={font=\tiny, align=center},
+    note/.style ={font=\tiny\itshape, text=neutralGray, align=center},
+    edge/.style ={->, draw=neutralGray, line width=0.5pt},
+    ev/.style   ={fill=locusContext!40, rounded corners=1pt},
+    evt/.style  ={fill=locusTraj!45},
+]
+
+\node[chip] (cext) at (0mm,0mm) {};
+\node[font=\scriptsize] at ($(cext.north)+(0,-3mm)$)
+      {\textbf{external claim} (short)};
+\fill[locusStruct!45, rounded corners=0.5pt]
+      ($(cext.south)+(-5mm,1.8mm)$) rectangle ($(cext.south)+(5mm,2.9mm)$);
+\node[note, below=0.6mm of cext] (cextn)
+      {fixed hypothesis set,\\reused across the corpus};
+
+\node[chip] (cint) at (38mm,0mm) {};
+\node[font=\scriptsize] at ($(cint.north)+(0,-3mm)$)
+      {\textbf{internal claim} (long)};
+\fill[locusStruct!45, rounded corners=0.5pt]
+      ($(cint.south)+(-12mm,1.8mm)$) rectangle ($(cint.south)+(12mm,2.9mm)$);
+\node[note, below=0.6mm of cint] (cintn)
+      {authored for its\\specific document};
+
+\draw[edge] (cextn.south) -- (3mm,-20mm);
+\draw[edge] (cintn.south) -- (35mm,-20mm);
+\node[note] at (19mm,-16mm) {verified against a document $D$};
+
+
+\begin{scope}[shift={(-13mm,-49mm)}]
+  \draw[draw=neutralGray, fill=neutralGray!4, rounded corners=1.5pt,
+        line width=0.5pt] (0mm,0mm) rectangle (16mm,28mm);
+  \fill[ev] (1mm,15.7mm) rectangle (15mm,17.9mm);   % span behind line 4
+  \foreach \i/\len in {1/13mm,2/11.5mm,3/12.5mm,4/13mm,5/10.5mm,
+                       6/12.5mm,7/13mm,8/11mm,9/9mm}
+    \draw[neutralGray!75, line width=0.45pt]
+      (1.5mm,28mm-\i*2.8mm) -- ++(\len,0);
+  \node[tag]  at (8mm,-3mm) {single-hop};
+  \node[note] at (8mm,-6.5mm) {one prose span\\(unstructured)};
+\end{scope}
+
+\begin{scope}[shift={(11mm,-49mm)}]
+  \draw[draw=neutralGray, fill=neutralGray!4, rounded corners=1.5pt,
+        line width=0.5pt] (0mm,0mm) rectangle (16mm,28mm);
+  \fill[ev] (1mm,13mm) rectangle (15mm,15.2mm);     % span behind line 5
+  \foreach \i/\len in {1/13mm,2/11.5mm,3/12.5mm,4/13mm,5/10.5mm,
+                       8/11mm,9/9mm}
+    \draw[neutralGray!75, line width=0.45pt]
+      (1.5mm,28mm-\i*2.8mm) -- ++(\len,0);
+  \fill[evt] (6mm,9.8mm) rectangle (10mm,12.4mm);
+  \draw[neutralGray!80, line width=0.4pt] (2mm,7.2mm) rectangle (14mm,12.4mm);
+  \draw[neutralGray!80, line width=0.4pt] (2mm,9.8mm)  -- (14mm,9.8mm);
+  \draw[neutralGray!80, line width=0.4pt] (6mm,7.2mm)  -- (6mm,12.4mm);
+  \draw[neutralGray!80, line width=0.4pt] (10mm,7.2mm) -- (10mm,12.4mm);
+  \node[tag]  at (8mm,-3mm) {multi-hop, local};
+  \node[note] at (8mm,-6.5mm) {spans clustered\\(mixed: text + table)};
+\end{scope}
+
+\begin{scope}[shift={(35mm,-49mm)}]
+  \draw[draw=neutralGray, fill=neutralGray!4, rounded corners=1.5pt,
+        line width=0.5pt] (0mm,0mm) rectangle (16mm,28mm);
+  \fill[ev] (1mm,24.1mm) rectangle (15mm,26.3mm);   % span behind clause 1
+  \fill[ev] (1mm,1.7mm)  rectangle (15mm,3.9mm);    % span behind clause 5
+  \foreach \i/\c in {1/1,3/2,5/3,7/4,9/5}
+    \node[font=\tiny, text=neutralGray]
+      at (2.4mm,28mm-\i*2.8mm) {\c.};
+  \foreach \i/\len in {1/10.5mm,2/9mm,3/10mm,4/10.5mm,5/8mm,
+                       6/10mm,7/10.5mm,8/8.5mm,9/7mm}
+    \draw[neutralGray!75, line width=0.45pt]
+      (4.2mm,28mm-\i*2.8mm) -- ++(\len,0);
+  \node[tag]  at (8mm,-3mm) {multi-hop, dispersed};
+  \node[note] at (8mm,-6.5mm) {spans far apart\\(enumerated clauses)};
+\end{scope}
+
+\fill[ev] (-14mm,-63mm) rectangle ++(4mm,2mm);
+\node[tag, anchor=west] at (-9.4mm,-62mm) {prose span};
+\fill[evt] (6mm,-63mm) rectangle ++(4mm,2mm);
+\draw[neutralGray!80, line width=0.4pt] (6mm,-63mm) rectangle ++(4mm,2mm);
+\node[tag, anchor=west] at (10.6mm,-62mm) {table cell (struct.)};
+\node[tag] at (33mm,-62mm) {1., 2., \dots};
+\node[tag, anchor=west] at (37.5mm,-62mm) {enum.\ clause (struct.)};
+
+\end{tikzpicture}
+\caption{%
+Anatomy of a verification instance. \emph{Claims} (top) vary in
+provenance and length: external claims come from a fixed hypothesis set
+reused across every document in the corpus and tend to be short
+(ContractNLI), whereas internal claims are authored for their specific
+document and tend to be longer (FinDVer, CoverBench); the bar inside
+each chip depicts claim length. \emph{Evidence} (bottom) varies in hop
+count (single- vs.\ multi-hop), locality (spans clustered vs.\
+dispersed through the document), and structure: unstructured prose,
+tables (FinDVer, CoverBench), and enumerated clauses (ContractNLI).
+Highlighted regions mark gold evidence.
+Table~\ref{tab:dataset_stats} quantifies each dimension per benchmark,
+and \S\ref{sec:robustness} stratifies results along them.%
+\label{fig:instance-anatomy}}
+\end{figure}
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Group} & \textbf{Metric} & \textbf{FinDVer} & \textbf{CoverBench} & \textbf{ContractNLI} \\
+\midrule
+\textit{Overview}     & \#Docs           & 600         & 624   & 607 \\
+                   & \#Claims         & 700         & 733  & 10,319$^{\dagger}$ \\
+\addlinespace[2pt]
+\textit{Docs}      & Avg Len.         & 41K--43K    & 3.5K & 2.1K \\
+                   & Max Len.         & 71K         & 53k   & 11.3K \\
+                   & Avg Tbl./Doc     & 79          & 2   & -- \\
+% FIXED: a stray "s" began this row in the original; it would have
+% printed as a spurious first-column entry.
+\addlinespace[2pt]
+\textit{Claims}    & Claim Len. (M/A) & 35.7 / 36.5 & 14 / 16.5 & 13.0 / 12.8 \\
+\addlinespace[2pt]
+\textit{Evidence}  & Avg Ev./Claim    & 2.8         & --   & 1.94 \\
+                   & Tbl. Ev. Rate    & 66--71\%    & 69.3\% & --$^{\ddagger}$ \\
+\addlinespace[2pt]
+\textit{Reasoning} & Single-Hop       & 11.6\%      & --   & 46.8\% \\
+                   & Local MH         & 83.4\%      & --   & 44.6\% \\
+                   & Disp. MH         & 5.0\%       & --   & 8.6\% \\
+                   & Total MH         & 88.4\%      & --   & 53.2\% \\
+\addlinespace[2pt]
+\textit{Struct.}   & Mixed            & 99.5\%      & 54.0\%   & 29.7\% \\
+                   & Unstruct.        & 0.5\%       & 30.7\%  & 50.0\% \\
+                   & Struct.-Only     & 0.0\%       & 15.3\%   & 20.3\% \\
+\bottomrule
+\end{tabular}
+\caption{Dataset statistics for the three benchmarks used in our
+evaluation. Claim Len.\ (M/A) reports the median\,/\,average claim
+length in words.}
+\label{tab:dataset_stats}
+\end{table*}
+
+
+
+
+\subsubsection{FinDVer (FDV)}
+\label{sec:findver}
+
+FinDVer is a financial claim verification dataset for long-context which contains 600 SEC 10-Q reports on a quarter basis with full document exposure. It involves 700 manually annotated claims; each paired with gold explanations and multiple granularity evidence from the source document. These 700 claim pairs are the FinDVer testmini split and not the full test split. We use testmini because it is the only split that provides gold inclusion annotations label (true/false) for each claim, which are required to score the findings and compute the precision along the cost–accuracy frontier in Section 6; These labels are withheld by the full test split to enable leaderboard style evaluation. All statistics presented below and all results in Section 6 are therefore testmini scale figures.
+\newline
+All claims in FDV have real financial disclosures as their basis, demanding the need for a model that can find, analyze, and infer from diverse evidence in one document setting. Source documents are long (41K–43K words on average, up to 71K) and table heavy (79 tables per document on average). This collection demonstrates universality in structure since 99.5\% of documents (597) are mixed structure, combining tables and text, while unstructured data, in which there are only text documents, is only 0.5\% (3 documents). The claims are concise but information-rich, having a median number of 35.7 tokens and an average of 36.5 tokens. There are three different subsets of claims based on the 700 claims, which include FDV-IE (250 claims) with emphasis on information extraction and heavy use of tables, FDV-MATH (250 claims) with emphasis on numerical reasoning and shortest claim lengths (24 tokens on average), and FDV-KNOW (200 claims) with emphasis on knowledge-based reasoning and longest explanations (96 tokens on average). There are 2.8 evidence units per claim and 66 to 71 percent uses tables.
+\newline
+Testmini is characterized by multi-hop reasoning ability. Only 11.6\% (81) claims are single-hop, 83.4\% (584) involve local multi-hop reasoning within close spans of evidence, and 5.0\% (35) demand multi-hop reasoning with dispersed spans of evidence, making up 88.4\% of claims in total. The dominant multi-hop structure of the fully annotated 700-claim testmini dataset makes it well suited for evaluating whether inference-time scaffolds justify their added token cost over prompting techniques.
+
+\subsubsection{CoverBench(CVB)}
+\label{sec:CoverBench}
+CoverBench is a challenging claim verification benchmark for complex reasoning settings, constructed from nine source datasets spanning the Wikipedia, financial, biomedical, legal, statistical, and other domains. It contains 733 manually vetted claims paired with rich grounding contexts drawn from 624 unique documents, selected to be both difficult and minimally contaminated through a model-based example selection procedure.
+\newline
+Source documents are moderately long (3,278 tokens on average , up to 53,208 tokens) and table present in the majority of cases, with an average of 2 tables per document. Of the 733 claims, 69.3\%  require reasoning over tables as indicated by their complexity tags. Structure is heterogeneous: 54.0\% of claims (396) come from mixed contexts combining tables and text, 30.7\% (225) from unstructured text only contexts (ContractNLI, PubMedQA), and 15.3\% (112) from structured table only contexts (TabFact). Claims are concise, with a median length of 14.0 words and an average of 16.4 words.
+\newline
+CoverBench's variety of domains and sources of complexity including multi-step reasoning, quantitative reasoning, long context, and domain expertise  makes it well suited for evaluating whether inference-time scaffolds generalise beyond a single domain or evidence structure.
+\subsubsection{ContractNLI}
+\label{sec:ContractNLI}
+
+ContractNLI is a legal document NLI dataset consisting of 607 non-disclosure agreements (NDAs) drawn from SEC filings, spanning three splits: train (423), dev (61), and test (123). Unlike FinDVer and CoverBench, where each claim is authored specifically for its paired document, ContractNLI employs a fixed set of 17 \textit{external} hypotheses, standardized legal statements developed with paralegal review and applied uniformly across every contract. This yields 10,319 total (document, hypothesis) annotation pairs (607$\times$17), of which 2,091 belong to the test split used for all evaluation results in Section~6. Each pair is labeled with one of three verdicts: \textit{Entailment}, \textit{Contradiction}, or \textit{NotMentioned}, along with gold evidence spans in the source document for the two non-neutral labels. The external claim structure makes ContractNLI a checklist-style verification task: rather than verifying bespoke assertions, a model must determine how a fixed legal standard applies across a corpus of varied contracts.
+\newline
+Source documents are substantially shorter than FinDVer, averaging 2.1K tokens per contract (approximately 11K characters) with a maximum of 11.3K tokens, well within the context window of all modern long-context models. No document exceeds a 16K-token threshold, meaning truncation is not a confounding factor in evaluation; this contrasts sharply with the 41K--43K average length of FinDVer's SEC filings. NDAs also lack financial tables entirely, so evidence is drawn exclusively from legal prose and enumerated clauses. Claims are concise, with a median length of 13.0 words and a mean of 12.8 words, considerably shorter than FinDVer (35.7/36.5) or CoverBench (14/16.5), reflecting the formulaic and standardized vocabulary of NDA drafting. The label distribution across all annotation pairs is approximately 49\% Entailment, 11\% Contradiction, and 40\% NotMentioned, with the last category being unique to ContractNLI: these examples carry no evidence spans by definition, requiring a model to recognize the absence of relevant clauses rather than reason over conflicting or supporting text.
+\newline
+Among evidence-bearing examples (Entailment and Contradiction, constituting 59.8\% of all pairs), evidence spans average 1.94 units per claim. ContractNLI sits between single-hop and multi-hop in its reasoning demands: 46.8\% of evidence-bearing claims are single-hop, resolved by a single clause, while 53.2\% are multi-hop, requiring inference over multiple clauses. Of those multi-hop claims, 44.6\% involve local evidence, with spans clustered within 15\% of the document's length, and 8.6\% involve dispersed evidence, where supporting clauses are drawn from sections far apart in the contract. Unlike FinDVer, where 99.5\% of evidence combines structured tables with text, ContractNLI evidence is predominantly unstructured prose (50.0\%), with structured enumerated clause evidence accounting for 20.3\% of cases and a further 29.7\% mixing both. This makes ContractNLI a complementary benchmark to FinDVer: it isolates legal language understanding and absence-of-evidence detection under shorter context with no tabular reasoning, whereas FinDVer stresses long-context retrieval and numerical inference over heterogeneous structured-unstructured documents.
+
+
+
+
+
+\FloatBarrier
+\subsection{Baselines}
+\label{sec:baselines}
+
+Both baselines are single-call, zero-shot conditions that apply no
+inference-time scaffold: each reads the claim and the document once and emits a
+verdict directly. They anchor the cheap end of the cost--accuracy frontier and
+serve as the reference point against which every scaffold's additional token
+spend is judged (RQ1).
+
+\paragraph{Raw zero-shot.}
+The \textsc{raw} baseline issues a single call to the base model with a
+minimal, hand-written prompt containing the claim, the full source document,
+the permitted label set, and a one-line instruction to return a verdict. It
+performs no intermediate reasoning, no retrieval, and no tool calls, so its
+cost (Eq.~\eqref{eq:cost}) is one forward pass over the document plus a short
+label-length output. This is the null scaffold of \S\ref{sec:taxonomy}: it
+intervenes at none of the three loci and so defines the ``no extra tokens''
+condition that the question in our title is measured against.
+
+\paragraph{DSPy-structured prompting.}
+The \textsc{dspy} baseline gives the model the same information in a single
+call, but builds the prompt declaratively through a DSPy signature
+\citep{khattab2023dspy} rather than from a hand-written string. The signature
+names typed input fields (claim, document) and a constrained output field (the
+verdict label), and DSPy renders these into a standardized prompt and parses
+the response. We use the signature in its zero-shot form and run no DSPy
+optimizer, with no bootstrapped demonstrations or instruction search, so the
+\textsc{dspy} baseline stays a single forward pass whose cost is dominated by
+the same document tokens as \textsc{raw}; only the way the prompt is assembled
+changes.
+
+Its role is to control for prompt wording. Because every scaffold we evaluate
+is implemented through the same DSPy signatures (\S\ref{sec:models}), the gap
+between \textsc{raw} and \textsc{dspy} isolates the effect of prompt format
+alone, apart from any scaffold mechanism. If the two perform comparably,
+scaffold gains can be attributed to the scaffold rather than to incidental
+prompt engineering; if they differ, \textsc{dspy} is the fairer anchor, since
+it shares the scaffolds' prompt construction while adding none of their
+reasoning, retrieval, or extra calls. We report both and treat \textsc{dspy} as
+the primary zero-shot reference for the frontier.
+
+
+\section{Results}
+\label{sec:results}
+
+% =====================================================================
+%  SPLIT NOTE: Section \ref{sec:ContractNLI} states that the 2,091
+%  test-split pairs are used for all Section 6 results. The ContractNLI
+%  numbers below are from the DEV split (1,037 pairs, all 61 dev
+%  documents, no subsampling). Either re-run on test, or amend that
+%  sentence to say dev.
+%
+%  RLM table evaluated on ContractNLI 20 | CoverBench 19 | FinDVer 20
+%  (label-stratified, seed 0); counts omitted from the rendered table
+%  for this draft.
+%
+%  Base model Qwen3-8B, greedy decoding (temperature 0). The reasoning
+%  arm toggles the provider flag on the same checkpoint, so model
+%  identity is held fixed. USD at list prices.
+% =====================================================================
+
+\subsection{Cost--Accuracy Frontier}
+\label{sec:frontier}
+
+Table~\ref{tab:contractnli_main} reports all ten ContractNLI
+conditions, and Table~\ref{tab:contractnli_bootstrap} the paired
+bootstrap tests that establish which differences survive correction. We
+read the frontier off the $\bigl(\bar{T}(S), \mathrm{BA}(S)\bigr)$
+pairs directly.
+
+\paragraph{Five conditions are non-dominated.}
+Ordering the ten conditions by cost and retaining those no cheaper
+condition beats on balanced accuracy leaves the frontier
+\textsc{rag}\,(off) $\rightarrow$ \textsc{agentic}\,(off) $\rightarrow$
+\textsc{rag}\,(on) $\rightarrow$ \textsc{cot}\,(off) $\rightarrow$
+\textsc{raw}\,(on). The remaining five are dominated, and two of those
+are the most expensive conditions in the study: \textsc{cot}\,(on)
+costs 7\% more than \textsc{raw}\,(on) and scores 0.003 lower, while
+\textsc{dspy}\,(on) is beaten on both axes by \textsc{cot}\,(off) at
+69\% of the price. \emph{The two most token-hungry scaffolds do not
+earn their tokens.}
+
+\paragraph{The frontier is steep at the low end.}
+\textsc{rag} with reasoning off costs \$0.000061 per instance,
+4.7$\times$ less than zero-shot, because retrieval replaces a
+2{,}447-token document with a 511-token excerpt. It reaches BA 0.527,
+statistically indistinguishable from zero-shot's 0.531
+($\Delta=-0.004$, CI $[-0.031,+0.024]$). At the opposite end,
+\textsc{raw}\,(on) buys the highest accuracy in the study, 0.701, for
+8.8$\times$ the cheapest condition's cost. Between them lies
+\textsc{rag}\,(on), which attains BA 0.665, within 0.036 of the
+maximum, at roughly half the cost of \textsc{raw}\,(on); under budget
+pressure this is the most attractive point on the curve.
+
+\paragraph{Retrieval does not improve accuracy; it reduces cost.}
+Neither retrieval scaffold beats zero-shot on accuracy with reasoning
+off: \textsc{rag} is flat ($-0.004$, n.s.), and \textsc{agentic rag}
+gains $+0.036$ but does not survive correction
+($p_{\mathrm{Holm}}=.314$) and is $-0.046$ \emph{below} the baseline on
+macro-$F_1$. Their value lies on the cost axis alone. Reporting
+accuracy in isolation would have labelled both scaffolds failures and,
+in the same move, hidden the 4.7$\times$ cost reduction that puts
+\textsc{rag} on the frontier.
+
+\paragraph{Prompt format is not a confound.}
+The \textsc{dspy} baseline differs from \textsc{raw} by $+0.017$ BA
+(CI $[-0.020,+0.052]$, $p_{\mathrm{Holm}}=.723$), so declarative prompt
+construction neither helps nor hurts materially. Gains attributed to
+scaffolds are therefore attributable to the scaffold mechanism rather
+than to prompt wording, which is what this baseline was included to
+establish (\S\ref{sec:baselines}).
+
+\paragraph{Chance correction does not reorder the frontier.}
+$\kappa$ preserves the accuracy ordering, and the deflation gap
+$\Delta\kappa$ is largest for \textsc{agentic rag}\,(off) at $0.282$,
+the condition with the weakest macro-$F_1$ (0.496) despite a middling
+BA (0.567). That gap is the signature of a scaffold leaning on the
+label prior rather than discriminating between verdicts, and it is why
+we do not read its nominal $+0.036$ BA over zero-shot as a genuine
+gain. We return to this in \S\ref{sec:robustness}.
+
+\subsection{Scaffold Interactions}
+\label{sec:interactions}
+
+The taxonomy of \S\ref{sec:taxonomy} predicts that scaffolds at
+different loci compose. Native reasoning intervenes on the
+\emph{compute trajectory}; \textsc{rag} and \textsc{agentic rag}
+intervene on \emph{context construction}; \textsc{cot} also intervenes
+on the compute trajectory. Crossing the reasoning flag with each
+scaffold on the same checkpoint tests that prediction directly, and the
+result splits along the predicted line.
+
+\paragraph{Reasoning composes with context-construction scaffolds.}
+Enabling reasoning yields large, significant gains for every scaffold
+at a different locus: \textsc{raw} $+0.170$, \textsc{rag} $+0.138$,
+\textsc{dspy} $+0.114$, \textsc{agentic} $+0.079$, all with
+$p_{\mathrm{Holm}}=.0005$ and all confirmed on macro-$F_1$
+(Table~\ref{tab:contractnli_bootstrap}). This is the largest effect we
+measure on ContractNLI, exceeding any scaffold-vs-baseline difference.
+
+\paragraph{Reasoning does not compose with \textsc{cot}.}
+\textsc{cot} is the one scaffold occupying the same locus as native
+reasoning, and the one for which the reasoning flag adds nothing
+reliable: $+0.027$ BA, CI $[-0.006,+0.061]$, $p_{\mathrm{Holm}}=.115$.
+Prompt-elicited and native reasoning are \emph{substitutes}, not
+complements, as a same-locus prediction requires. The comparison is
+metric-sensitive: on macro-$F_1$ the same contrast is $+0.044$ and does
+reach significance ($p_{\mathrm{Holm}}=.005$), so the accurate
+statement is that \textsc{cot}'s reasoning gain is small and not robust
+across metrics, unlike the other four which are unambiguous on both.
+
+\paragraph{The substitution reverses the headline scaffold result.}
+With reasoning off, \textsc{cot} is the strongest scaffold on the
+board, beating zero-shot by $+0.140$ BA ($p_{\mathrm{Holm}}=.0004$).
+With reasoning on that advantage vanishes: 0.698 against 0.701, a
+reversal of sign and a difference far inside the noise.
+\textbf{Prompt-engineered chain-of-thought is not better reasoning; it
+is a substitute for reasoning the model performs natively when
+permitted to.} A practitioner using a model with a thinking mode gains
+nothing from CoT prompting on this task and pays 7\% more per instance
+for it.
+
+\paragraph{RLM recursion is not driven by document length.}
+The recursive scaffold decomposes a document by issuing nested model
+calls when the input is too large to read at once, so recursion should
+rise with document length. Table~\ref{tab:rlm_behaviour} shows the
+opposite ordering: FinDVer, whose documents are 23$\times$ longer than
+CoverBench's, recurses at 5\% against CoverBench's 32\%. Two
+measurements explain why. First, the root re-reads rather than
+delegates: its peak single turn reaches 212\% and 435\% of the document
+on the two short benchmarks, because the accumulated REPL transcript is
+re-sent every iteration, and it exhausts the ten-iteration budget on
+65\% and 53\% of instances (100\% on FinDVer). Second, when recursion
+does fire the sub-calls carry almost no document: 2.2--12.1 tokens of
+prompt, or 0.2--16.6\% of the document. A sub-call this small is a
+question with the evidence omitted, so the sub-agent answers
+unsupported. RLM attains its lowest balanced accuracy (0.450) on
+precisely the benchmark its design targets.
+
+\paragraph{Implication for the frontier.}
+Because reasoning composes with cheap context-construction scaffolds
+but not with expensive trajectory ones, the profitable combinations are
+retrieval-plus-reasoning rather than CoT-plus-reasoning.
+\textsc{rag}\,(on) at \$0.000277 reaches BA 0.665, while
+\textsc{cot}\,(on) at \$0.000571 reaches 0.698: a 4\% accuracy gain for
+106\% more spend. Which a practitioner should choose is precisely the
+trade the cost-matched protocol exposes, and it is invisible to an
+accuracy-only comparison.
+
+\subsection{Scaling Across Model Size}  % crossover figure
+\label{sec:scaling}
+
+% Numbers below are from Tables tab:performance, tab:rag_agentic_rag_performance
+% and tab:tokens (FinDVer and CoverBench; ContractNLI 4B/1.7B runs pending).
+% CHECK: CoverBench 8B CoT thinking-off reports BA 0.502 but F1 0.689;
+% that gap is unusually large for a binary task and should be re-verified.
+
+To test whether the cost--accuracy ordering of scaffolds is stable within
+the small-model regime (RQ2), we repeat every condition on Qwen3 at 8B, 4B
+and 1.7B parameters on FinDVer and CoverBench
+(Tables~\ref{tab:performance}, \ref{tab:rag_agentic_rag_performance}
+and~\ref{tab:tokens}). The ordering is not stable: which scaffold is worth
+its tokens changes with model size.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Bench.} & \textbf{Size} & \textsc{dspy} & \textsc{cot} & \textsc{rag} & \textsc{agentic} \\
+\midrule
+\multirow{3}{*}{FinDVer}
+ & 8B   & $+0.026$ & $+0.025$ & $+0.052$ & $\mathbf{+0.068}$ \\
+ & 4B   & $-0.015$ & $\mathbf{+0.014}$ & $-0.025$ & $-0.019$ \\
+ & 1.7B & $+0.027$ & $\mathbf{+0.068}$ & $-0.045$ & $-0.025$ \\
+\midrule
+\multirow{3}{*}{CoverBench}
+ & 8B   & $+0.028$ & $-0.040$ & $-0.020$ & $\mathbf{+0.042}$ \\
+ & 4B   & $+0.016$ & $\mathbf{+0.068}$ & $+0.019$ & $+0.027$ \\
+ & 1.7B & $+0.008$ & $\mathbf{+0.059}$ & $+0.007$ & $+0.016$ \\
+\bottomrule
+\end{tabular}
+\caption{Balanced-accuracy gain of each scaffold over zero-shot, thinking
+off, by Qwen3 model size. Bold marks the largest gain per row. Retrieval
+scaffolds lead at 8B; CoT leads at 4B and 1.7B.}
+\label{tab:scaling_gain}
+\end{table}
+
+\paragraph{Retrieval scaffolds help only at 8B.}
+With thinking off, the retrieval scaffolds are the strongest on FinDVer at
+8B: \textsc{agentic rag} gains $+0.068$ BA over zero-shot and \textsc{rag}
+$+0.052$ (Table~\ref{tab:scaling_gain}). Below 8B both fall
+\emph{below} zero-shot, by $-0.019$ to $-0.045$, and at 1.7B the drop is
+sharper still on macro-$F_1$ (0.494 for \textsc{rag} against 0.657 for
+zero-shot). The FinDVer result is therefore a crossover rather than a
+uniform effect: the scaffold that tops the 8B frontier is the one a
+practitioner should avoid at 4B and below. On CoverBench, whose documents
+are an order of magnitude shorter, retrieval is roughly neutral at every
+size (between $-0.020$ and $+0.042$).
+
+\paragraph{CoT is the most scale-robust scaffold.}
+Prompted chain-of-thought gives the largest gain over zero-shot in all four
+small-model cells ($+0.014$ to $+0.068$), and with thinking on it is the
+best of all ten conditions in five of the six (model, benchmark) pairs; the
+exception is FinDVer at 8B, where \textsc{agentic rag} reaches 0.826
+against CoT's 0.805. On FinDVer its gain is largest at the smallest
+size, $+0.068$ at 1.7B against $+0.025$ at 8B. The one outlier is CoverBench at
+8B, where CoT with thinking off falls $0.040$ below zero-shot but recovers
+to the best score on that benchmark (0.678) once thinking is enabled.
+
+\paragraph{Native reasoning adds little below 8B.}
+At 4B and 1.7B, turning thinking on changes balanced accuracy by at most
+$+0.032$ in every cell. At 8B the gain can be much larger, up to $+0.176$
+for CoT on CoverBench. Smaller models also reason less: CoT's total output
+under thinking falls from 833 to 469 tokens on FinDVer and from 857 to 318
+on CoverBench between 8B and 1.7B (Table~\ref{tab:tokens}).
+
+\paragraph{Implication for the frontier.}
+Because zero-shot, \textsc{dspy} and CoT all read the full document, they
+share nearly the same input cost, and output tokens decide which is cheaper.
+At 4B and 1.7B, CoT with thinking off dominates both zero-shot and
+\textsc{dspy} with thinking on on both benchmarks: it is more accurate by
+$0.009$--$0.050$ BA while generating fewer tokens (e.g.\ 53 against 130
+for zero-shot on CoverBench at 1.7B). Enabling thinking on top of CoT
+then costs 3--6$\times$ the output tokens for $+0.007$ to $+0.011$ BA. For
+small models the cost-effective choice is therefore prompted CoT without
+native reasoning, whereas at 8B native reasoning and, on long documents,
+agentic retrieval earn their extra tokens. A cost--accuracy ranking
+established on one model size should not be carried over to another.
+
+\subsection{Robustness of the Frontier}
+\label{sec:robustness}
+The frontier above could in principle be inflated by factors unrelated to a
+scaffold's reasoning quality. We run three ablations to separate genuine
+gains from artifacts (RQ5).
+
+\paragraph{Difficulty confounding.}
+Aggregate scores mix claims of very different difficulty: \S\ref{sec:findver}
+shows that local multi-hop claims alone account for 83.4\% of FinDVer, so a
+scaffold can post a strong mean while helping only on the dominant, easier
+stratum. We therefore stratify balanced accuracy and macro-$F_1$ by
+claim-length bin and by hop type (single-hop, local multi-hop, dispersed
+multi-hop) and ask whether each scaffold's advantage over zero-shot persists
+\emph{within} every stratum. A lead that holds within strata is genuine; a
+lead that appears only in aggregate is a composition effect, and we report
+both so the two cannot be confused.
+
+\paragraph{Positional bias (lost-in-the-middle).}
+Long-context models attend unevenly across the input, often degrading when
+the relevant evidence sits in the middle of the document. Using the
+gold-evidence offsets provided by FinDVer and the evidence spans in
+ContractNLI, we compute a normalized evidence depth for each instance and
+report balanced accuracy as a function of that depth for every scaffold. This
+exposes whether a scaffold's gains are concentrated where evidence is easy to
+reach (document start or end) and, more usefully, whether context-construction
+scaffolds such as RAG or claim decomposition flatten the depth curve by
+relocating or shortening the evidence the model must read. A scaffold that
+reduces positional sensitivity is valuable even when its mean accuracy is
+unchanged.
+
+\paragraph{Chance-corrected agreement.}
+Raw accuracy, and even macro-$F_1$, can overstate discriminative ability
+because they do not correct for agreement expected under the label marginals;
+recent large-scale evaluation work reports gaps of 33--41 points between raw
+agreement and Cohen's $\kappa$ \citep{norman2026reliability}. We therefore
+recompute the scaffold ranking under Cohen's $\kappa$ and report the
+deflation gap $\Delta\kappa = \mathrm{Acc} - \kappa$. If the $\kappa$ ranking
+matches the $F_1$ ranking, the frontier is robust to chance correction; if a
+scaffold's lead collapses under $\kappa$, that lead reflects exploitation of
+the label prior rather than verification skill. Because deflation is largest
+under skewed label distributions, this check is most informative on the
+three-way, \textsc{not\,mentioned}-heavy ContractNLI labels, and we foreground
+it there.
+
+\subsection{Faithfulness Sub-Study}     % gold-evidence subset
+\label{sec:faithfulness}
+
+Accuracy alone cannot tell us whether a scaffold's evidence and reasoning
+actually drive its verdict (RQ4). We therefore intervene on, and audit, the
+evidence each scaffold uses on ContractNLI, whose gold evidence span
+annotations make these interventions possible. We use a label-stratified
+sample of 150 dev instances (Qwen3-8B, seed 0). Of these, 89 are
+\textsc{entailed} or \textsc{contradicted} and carry annotated gold evidence
+spans; \textsc{not\,mentioned} instances have none by definition. We ask three
+questions:
+\begin{enumerate}
+    \item \textbf{Evidence ablation:} Does deleting the gold evidence change
+    the answer?
+    \item \textbf{Agentic stopping:} Does the agentic RAG scaffold stop
+    searching before it has seen the evidence?
+    \item \textbf{CoT citations:} Are the quotes in chain-of-thought reasoning
+    real, and do they point at the relevant clause?
+\end{enumerate}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Context variant} & \textbf{Acc.} & \textbf{Flip rate} \\
+\midrule
+Full document (baseline)    & 0.753 & --    \\
+Gold evidence removed       & 0.393 & 0.393 \\
+Random text removed (ctrl)  & 0.753 & 0.034 \\
+Gold evidence only (oracle) & 0.831 & 0.191 \\
+\bottomrule
+\end{tabular}
+\caption{Evidence ablation on the 89 ContractNLI instances with gold
+evidence (Qwen3-8B, zero-shot, reasoning off). The random control removes an
+equal amount of non-evidence text. Flip rate is the fraction of predictions
+that change relative to the full-document baseline.}
+\label{tab:faith_ablation}
+\end{table}
+
+\paragraph{Predictions depend on the gold evidence.}
+Removing the gold spans lowers accuracy from 0.753 to 0.393, whereas removing
+the same amount of random non-evidence text leaves it unchanged at 0.753 and
+flips only 3.4\% of predictions (Table~\ref{tab:faith_ablation}). The
+evidence-specific effect is therefore $+0.360$, so the drop is caused by
+losing the operative clauses and not by a shorter context. Giving the model
+only the gold evidence raises accuracy to 0.831, which shows that the rest of
+the contract acts partly as a distractor.
+
+\paragraph{The agentic scaffold often stops before the evidence arrives.}
+The agentic scaffold answers after 2.57 search steps on average, having seen
+7.5 unique spans and 57.0\% of the gold evidence. In 21.3\% of gold-evidence
+instances (19/89) it commits to an answer without ever retrieving a gold span,
+and 9 of those 19 answers are still scored correct: the right verdict with no
+evidential basis. Agentic accuracy therefore overstates how often the verdict
+is actually grounded.
+
+\paragraph{CoT citations are mostly grounded.}
+Of 150 CoT rationales, 41 quote the contract, and 76.0\% of quoted passages
+appear word-for-word in it. Rationales share 0.554 of their content words with
+the gold evidence versus 0.211 with random contract spans, a lift of $+0.343$
+over chance. So when CoT reasons explicitly, it reasons about the operative
+clause.
+
+\paragraph{Summary.}
+On ContractNLI, verdicts and CoT reasoning are largely faithful to the gold
+evidence. The exception is the agentic scaffold: part of its cost savings
+comes from stopping early without the evidence, which is a risk that accuracy
+alone does not reveal.
+
+\section{Discussion}                % the practical recommendation: what to use, when
+\section{Conclusion}
+\section*{Limitations}
+
+
+
+\section*{Acknowledgments}
+
+This document has been adapted
+by Steven Bethard, Ryan Cotterell and Rui Yan
+from the instructions for earlier ACL and NAACL proceedings, including those for
+ACL 2019 by Douwe Kiela and Ivan Vuli\'{c},
+
+NAACL 2019 by Stephanie Lukin and Alla Roskovskaya,
+ACL 2018 by Shay Cohen, Kevin Gimpel, and Wei Lu,
+NAACL 2018 by Margaret Mitchell and Stephanie Lukin,
+Bib\TeX{} suggestions for (NA)ACL 2017/2018 from Jason Eisner,
+ACL 2017 by Dan Gildea and Min-Yen Kan,
+NAACL 2017 by Margaret Mitchell,
+ACL 2012 by Maggie Li and Michael White,
+ACL 2010 by Jing-Shin Chang and Philipp Koehn,
+ACL 2008 by Johanna D. Moore, Simone Teufel, James Allan, and Sadaoki Furui,
+ACL 2005 by Hwee Tou Ng and Kemal Oflazer,
+ACL 2002 by Eugene Charniak and Dekang Lin,
+and earlier ACL and EACL formats written by several people, including
+John Chen, Henry S. Thompson and Donald Walker.
+Additional elements were taken from the formatting instructions of the \emph{International Joint Conference on Artificial Intelligence} and the \emph{Conference on Computer Vision and Pattern Recognition}.
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\bibliography{custom}
+
+\appendix
+
+\section{Example Appendix}
+\label{sec:appendix}
+
+This is an appendix.
+
+
+%============================================================
+% Results
+%
+% ContractNLI rows: FILLED for Qwen 3 (8B) from the dev split
+% (n = 1,037, all 61 dev documents). The 4B and 1.7B ContractNLI runs
+% are still "--" because those runs errored out completely on
+% 2026-09-06 (1,037 errors, 0 scored) and have not been re-run; the
+% numbers do not exist yet rather than having been omitted.
+%
+% \multirow calls throughout these tables were taking a single
+% argument, which is not valid syntax and was among the compile
+% errors. They now take the required three: {rows}{width}{text}.
+%============================================================
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.8pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{tabular}{llccc|ccc|ccc|ccc|ccc|ccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} &
+\multirow{2}{*}{\textbf{Benchmark}} &
+\multicolumn{3}{c|}{\textbf{ZS -- Bal. Acc.}} &
+\multicolumn{3}{c|}{\textbf{DSPy -- Bal. Acc.}} &
+\multicolumn{3}{c|}{\textbf{CoT -- Bal. Acc.}} &
+\multicolumn{3}{c|}{\textbf{ZS -- F1}} &
+\multicolumn{3}{c|}{\textbf{DSPy -- F1}} &
+\multicolumn{3}{c}{\textbf{CoT -- F1}} \\
+\cmidrule(lr){3-5}
+\cmidrule(lr){6-8}
+\cmidrule(lr){9-11}
+\cmidrule(lr){12-14}
+\cmidrule(lr){15-17}
+\cmidrule(lr){18-20}
+
+&
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off} & \textbf{On} & $\boldsymbol{\Delta}$
+\\
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (8B)}}
+& FinDVer
+& 0.733 & 0.752 & +0.019
+& 0.759 & 0.769 & +0.010
+& 0.758 & \textbf{0.805} & +0.047
+& 0.758 & 0.763 & +0.005
+& 0.761 & 0.772 & +0.011
+& 0.796 & \textbf{0.806} & +0.010
+\\
+
+& CoverBench
+& 0.542 & 0.563 & +0.021
+& 0.570 & 0.586 & +0.016
+& 0.502 & \textbf{0.678} & +0.176
+& 0.502 & 0.521 & +0.019
+& 0.515 & 0.546 & +0.031
+& 0.689 & \textbf{0.692} & +0.003
+\\
+
+& ContractNLI
+& 0.531 & 0.701 & +0.170
+& 0.548 & 0.662 & +0.114
+& 0.671 & \textbf{0.698} & +0.027
+& 0.542 & 0.685 & +0.143
+& 0.558 & 0.643 & +0.085
+& 0.630 & \textbf{0.674} & +0.044
+\\
+
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (4B)}}
+& FinDVer
+& 0.757 & 0.762 & +0.005
+& 0.742 & 0.755 & +0.013
+& 0.771 & \textbf{0.782} & +0.011
+& 0.741 & 0.754 & +0.013
+& 0.756 & 0.763 & +0.007
+& 0.756 & \textbf{0.766} & +0.010
+\\
+
+& CoverBench
+& 0.528 & 0.546 & +0.018
+& 0.544 & 0.562 & +0.018
+& 0.596 & \textbf{0.603} & +0.007
+& 0.491 & 0.505 & +0.014
+& 0.522 & 0.532 & +0.010
+& 0.605 & \textbf{0.611} & +0.006
+\\
+
+& ContractNLI
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+\\
+
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (1.7B)}}
+& FinDVer
+& 0.669 & 0.701 & +0.032
+& 0.696 & 0.724 & +0.028
+& 0.737 & \textbf{0.745} & +0.008
+& 0.657 & 0.693 & +0.036
+& 0.735 & 0.716 & -0.019
+& 0.759 & \textbf{0.769} & +0.010
+\\
+
+& CoverBench
+& 0.519 & 0.537 & +0.018
+& 0.527 & 0.553 & +0.026
+& 0.578 & \textbf{0.585} & +0.007
+& 0.371 & 0.425 & +0.054
+& 0.491 & 0.509 & +0.018
+& 0.589 & \textbf{0.592} & +0.003
+\\
+
+& ContractNLI
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+\\
+
+\bottomrule
+\end{tabular}
+\caption{Performance under Thinking Off and Thinking On across Qwen 3 model sizes, benchmarks, and prompting strategies. $\Delta$ denotes the absolute change from Thinking Off to Thinking On ($\text{On}-\text{Off}$). ContractNLI figures are from the dev split ($n{=}1{,}037$); the 4B and 1.7B ContractNLI runs are pending.}
+\label{tab:performance}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{tabular}{lllccc|ccc}
+\toprule
+\multirow{2}{*}{\textbf{Setting}} &
+\multirow{2}{*}{\textbf{Model}} &
+\multirow{2}{*}{\textbf{Benchmark}} &
+\multicolumn{3}{c|}{\textbf{Bal. Acc.}} &
+\multicolumn{3}{c}{\textbf{F1}} \\
+\cmidrule(lr){4-6}
+\cmidrule(lr){7-9}
+
+&
+&
+&
+\textbf{Off*} & \textbf{On} & $\boldsymbol{\Delta}$
+&
+\textbf{Off*} & \textbf{On} & $\boldsymbol{\Delta}$
+\\
+\midrule
+
+\multirow{9}{*}{\textbf{RAG}}
+& \multirow{3}{*}{Qwen 3 8B}   & FinDVer     & 0.7853 & \textbf{0.8106} & +0.0253 & 0.7924 & \textbf{0.8012} & +0.0088 \\
+& & CoverBench  & 0.5217 & \textbf{0.5927} & +0.0710 & 0.6116 & \textbf{0.6293} & +0.0177 \\
+& & ContractNLI & 0.5275 & \textbf{0.6653} & +0.1378 & 0.5302 & \textbf{0.6543} & +0.1241 \\
+\cmidrule(lr){2-9}
+& \multirow{3}{*}{Qwen 3 4B}   & FinDVer     & 0.7324 & \textbf{0.7421} & +0.0097 & 0.7519 & \textbf{0.7619} & +0.0100 \\
+& & CoverBench  & 0.5469 & \textbf{0.5612} & +0.0143 & 0.5456 & \textbf{0.5556} & +0.0100 \\
+& & ContractNLI & --     & --              & --      & --     & --              & --      \\
+\cmidrule(lr){2-9}
+& \multirow{3}{*}{Qwen 3 1.7B} & FinDVer     & 0.6244 & \textbf{0.6471} & +0.0227 & 0.4940 & \textbf{0.5030} & +0.0090 \\
+& & CoverBench  & 0.5261 & \textbf{0.5431} & +0.0170 & 0.4957 & \textbf{0.5207} & +0.0250 \\
+& & ContractNLI & --     & --              & --      & --     & --              & --      \\
+
+\midrule
+
+\multirow{9}{*}{\textbf{Agentic RAG}}
+& \multirow{3}{*}{Qwen 3 8B}   & FinDVer     & 0.801 & \textbf{0.826} & +0.025 & 0.793 & \textbf{0.820} & +0.027 \\
+& & CoverBench  & 0.584 & \textbf{0.615} & +0.031 & 0.619 & \textbf{0.654} & +0.035 \\
+& & ContractNLI & 0.567 & \textbf{0.646} & +0.079 & 0.496 & \textbf{0.598} & +0.102 \\
+\cmidrule(lr){2-9}
+& \multirow{3}{*}{Qwen 3 4B}   & FinDVer     & 0.738 & \textbf{0.759} & +0.021 & 0.754 & \textbf{0.777} & +0.023 \\
+& & CoverBench  & 0.555 & \textbf{0.578} & +0.023 & 0.552 & \textbf{0.582} & +0.030 \\
+& & ContractNLI & --    & --             & --     & --    & --             & --     \\
+\cmidrule(lr){2-9}
+& \multirow{3}{*}{Qwen 3 1.7B} & FinDVer     & 0.644 & \textbf{0.671} & +0.027 & 0.495 & \textbf{0.524} & +0.029 \\
+& & CoverBench  & 0.535 & \textbf{0.558} & +0.023 & 0.507 & \textbf{0.538} & +0.031 \\
+& & ContractNLI & --    & --             & --     & --    & --             & --     \\
+
+\bottomrule
+\end{tabular}
+
+\caption{RAG and Agentic RAG performance under Thinking Off vs. Thinking On across Qwen 3 model sizes and benchmarks. $\Delta$ denotes the absolute change from Thinking Off to Thinking On ($\text{On}-\text{Off}$). ContractNLI figures are from the dev split ($n{=}1{,}037$); the 4B and 1.7B ContractNLI runs are pending.}
+\label{tab:rag_agentic_rag_performance}
+\end{table*}
+
+
+
+
+
+
+
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{tabular}{llccc|ccc|ccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} &
+\multirow{2}{*}{\textbf{Benchmark}} &
+\multicolumn{3}{c|}{\textbf{Thinking Off -- Gen.}} &
+\multicolumn{3}{c|}{\textbf{Thinking On -- Reasoning}} &
+\multicolumn{3}{c}{\textbf{Thinking On -- Total}} \\
+
+\cmidrule(lr){3-5}
+\cmidrule(lr){6-8}
+\cmidrule(lr){9-11}
+
+&
+&
+\textbf{ZS} & \textbf{DSPy} & \textbf{CoT}
+&
+\textbf{ZS} & \textbf{DSPy} & \textbf{CoT}
+&
+\textbf{ZS} & \textbf{DSPy} & \textbf{CoT}
+\\
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (8B)}}
+& FinDVer
+& 32 & 32 & 180
+& 356 & 423 & 652
+& 389 & 457 & 833
+\\
+& CoverBench
+& 58 & 107 & 385
+& 214 & 287 & 471
+& 274 & 394 & 857
+\\
+& ContractNLI
+& 3 & 15 & 129
+& 536 & 475 & 466
+& 549 & 495 & 592
+\\
+
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (4B)}}
+& FinDVer
+& 13 & 13 & 162
+& 243 & 318 & 487
+& 258 & 332 & 651
+\\
+& CoverBench
+& 12 & 45 & 166
+& 176 & 239 & 361
+& 190 & 285 & 530
+\\
+& ContractNLI
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+\\
+
+\midrule
+
+\multirow{3}{*}{\textbf{Qwen 3 (1.7B)}}
+& FinDVer
+& 14 & 14 & 132
+& 157 & 214 & 337
+& 175 & 230 & 469
+\\
+& CoverBench
+& 12 & 33 & 53
+& 118 & 169 & 263
+& 130 & 204 & 318
+\\
+& ContractNLI
+& -- & -- & --
+& -- & -- & --
+& -- & -- & --
+\\
+
+\bottomrule
+\end{tabular}
+
+\caption{Inference token usage across model sizes, benchmarks, and prompting strategies. Gen. denotes generated tokens under Thinking Off. Reasoning denotes reasoning tokens under Thinking On, while Total denotes the combined reasoning and generated tokens. ContractNLI figures are from the dev split ($n{=}1{,}037$); the 4B and 1.7B ContractNLI runs are pending.}
+\label{tab:tokens}
+\end{table*}
+
+%============================================================
+% ContractNLI results (Section 6 references these).
+% Dev split, n = 1,037. The RLM table's per-benchmark counts
+% are noted in the Section 6 comment block.
+%============================================================
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llccccccc}
+\toprule
+& & \multicolumn{2}{c}{\textbf{Performance}} & \multicolumn{2}{c}{\textbf{Chance-corrected}} & \multicolumn{3}{c}{\textbf{Cost}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-9}
+\textbf{Scaffold} & \textbf{Reasoning} & BA & macro-$F_1$ & $\kappa$ & $\Delta\kappa$ & $T_{\mathrm{in}}$ & $T_{\mathrm{out}}$ & USD/inst. \\
+\midrule
+\textsc{raw} (zero-shot) & off & 0.531 & 0.542 & 0.401 & 0.269 & 2{,}447 & 3 & 0.000288 \\
+ & on & \textbf{0.701} & \textbf{0.685} & \textbf{0.558} & 0.182 & 2{,}439 & 549 & 0.000535 \\
+\addlinespace[2pt]
+\textsc{dspy} & off & 0.548 & 0.558 & 0.388 & 0.263 & 2{,}556 & 15 & 0.000306 \\
+ & on & 0.662 & 0.643 & 0.490 & 0.208 & 2{,}552 & 495 & 0.000524 \\
+\addlinespace[2pt]
+\textsc{cot} & off & 0.671 & 0.630 & 0.452 & 0.218 & 2{,}583 & 129 & 0.000361 \\
+ & on & 0.698 & 0.674 & 0.533 & 0.190 & 2{,}579 & 592 & 0.000571 \\
+\addlinespace[2pt]
+\textsc{rag} & off & 0.527 & 0.530 & 0.417 & 0.260 & \textbf{511} & 4 & \textbf{0.000061} \\
+ & on & 0.665 & 0.654 & 0.521 & 0.198 & 503 & 478 & 0.000277 \\
+\addlinespace[2pt]
+\textsc{agentic rag} & off & 0.567 & 0.496 & 0.282 & 0.282 & 1{,}637 & 35 & 0.000208 \\
+ & on & 0.646 & 0.598 & 0.422 & 0.224 & 565 & 747 & 0.000406 \\
+\bottomrule
+\end{tabular}
+\caption{ContractNLI results on the dev split ($n{=}1{,}037$ instances,
+all 61 documents, no subsampling), Qwen3-8B, greedy decoding.
+\emph{Reasoning} toggles the model's native thinking mode on the same
+checkpoint. $T_{\mathrm{in}}$ and $T_{\mathrm{out}}$ are mean input and
+output tokens per instance as reported by the serving layer
+(Eq.~\eqref{eq:cost}); $T_{\mathrm{out}}$ includes reasoning tokens,
+which are billed at the output rate. $\Delta\kappa=\mathrm{Acc}-\kappa$.
+All ten conditions completed with zero errors and zero parse failures.}
+\label{tab:contractnli_main}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Comparison} & $\Delta$BA & 95\% CI & $\Delta$macro-$F_1$ & $p$ & $p_{\mathrm{Holm}}$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Reasoning on vs.\ off, within scaffold}} \\
+\addlinespace[1pt]
+\quad \textsc{raw} & $+0.170$ & $[+0.129, +0.212]$ & $+0.143$ & $.0001$ & $.0005^{***}$ \\
+\quad \textsc{rag} & $+0.138$ & $[+0.098, +0.178]$ & $+0.124$ & $.0001$ & $.0005^{***}$ \\
+\quad \textsc{dspy} & $+0.114$ & $[+0.074, +0.154]$ & $+0.085$ & $.0001$ & $.0005^{***}$ \\
+\quad \textsc{agentic rag} & $+0.079$ & $[+0.037, +0.121]$ & $+0.102$ & $.0002$ & $.0005^{***}$ \\
+\quad \textsc{cot} & $+0.027$ & $[-0.006, +0.061]$ & $+0.044$ & $.1145$ & $.1145$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Scaffold vs.\ zero-shot baseline, reasoning off}} \\
+\addlinespace[1pt]
+\quad \textsc{cot} & $+0.140$ & $[+0.101, +0.178]$ & $+0.088$ & $.0001$ & $.0004^{***}$ \\
+\quad \textsc{agentic rag} & $+0.036$ & $[-0.008, +0.079]$ & $-0.046$ & $.1048$ & $.3144$ \\
+\quad \textsc{dspy} & $+0.017$ & $[-0.020, +0.052]$ & $+0.016$ & $.3614$ & $.7228$ \\
+\quad \textsc{rag} & $-0.004$ & $[-0.031, +0.024]$ & $-0.011$ & $.7980$ & $.7980$ \\
+\bottomrule
+\end{tabular}
+\caption{Paired bootstrap significance tests on ContractNLI dev
+($n{=}1{,}037$), 10{,}000 resamples. Instances are resampled jointly and
+both arms scored on the identical resample, so the per-instance
+difficulty common to both arms cancels. Intervals are 95\% percentile
+CIs on $\Delta$BA and are \emph{uncorrected}; $p$ is a two-sided
+achieved significance level and $p_{\mathrm{Holm}}$ applies
+Holm--Bonferroni within each family. $^{***}p<.001$. An interval may
+exclude zero while $p_{\mathrm{Holm}}$ does not reach significance,
+since only the latter corrects for multiplicity.}
+\label{tab:contractnli_bootstrap}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lcccccccc}
+\toprule
+& & \multicolumn{2}{c}{\textbf{Recursion}} & \multicolumn{2}{c}{\textbf{Tokens (root / sub)}} & \multicolumn{2}{c}{\textbf{Doc.\ coverage}} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+\textbf{Benchmark} & \textbf{Doc.\ tok.} & rate & sub/inst. & root & sub & root peak & sub & \textbf{BA} \\
+\midrule
+ContractNLI & 2{,}089 & 10\% & 0.25 & 25{,}611 & 8.1 & 212\% & 8.2\% & 0.600 \\
+CoverBench & 1{,}932 & 32\% & 0.37 & 20{,}118 & 12.1 & 435\% & 16.6\% & 0.579 \\
+FinDVer & 47{,}828 & 5\% & 0.05 & 35{,}912 & 2.2 & 16\% & 0.2\% & 0.450 \\
+\bottomrule
+\end{tabular}
+\caption{Recursive language model (RLM) behaviour across the three
+benchmarks, Qwen3-8B, greedy decoding. Token counts use tiktoken
+\texttt{cl100k\_base} throughout, so figures are comparable across
+benchmarks. \emph{Root peak} is the largest single root turn as a share
+of document tokens; it exceeds 100\% because the REPL transcript
+accumulates and is re-sent each iteration. \emph{Sub} coverage is
+summed over sub-calls, among instances that recursed. Recursion rate is
+\emph{inversely} related to document length.}
+\label{tab:rlm_behaviour}
+\end{table*}
+
+
+
+\end{document}
