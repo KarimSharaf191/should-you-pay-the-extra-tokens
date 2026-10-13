@@ -46,8 +46,6 @@ Usage
 """
 
 import os
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR", os.path.join(_ROOT, "results"))
 import re
 import json
 import random
@@ -65,6 +63,9 @@ from faithfulness_multi_support import (
     mean, ntok,
 )
 
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR",
+                             os.path.join(_ROOT, "results"))
 OUT_DIR = os.path.join(RESULTS_DIR, "faithfulness-multi")
 
 
@@ -147,11 +148,23 @@ def run_study1(bench, items, args):
         gi = gold_of(bench, it)
         rng = random.Random(f"{it['uid']}:{args.seed}")
         rec = {"uid": it["uid"], "gold": it["gold"], "n_gold": len(gi),
-               "n_passages": len(ps), "preds": {}, "ctx_tok": {}, "error": None}
+               "n_passages": len(ps), "preds": {}, "ctx_tok": {},
+               "raw_tail": {}, "unparsed": [], "error": None}
         try:
             for name, ctx in study1_variants(ps, gi, rng).items():
-                label, usage = cz.predict_raw(it["claim"], ctx, thinking_on=False)
-                rec["preds"][name] = normalize(label, bench)
+                # The benchmark's own True/False prompt. (cz.predict_raw is the
+                # ContractNLI predictor: its NDA prompt and 3-way labels never
+                # yield True/False, so every answer fell back to "False".)
+                prompt = PROMPTS[bench]["direct"].format(context=ctx,
+                                                         claim=it["claim"])
+                data = cz._post_chat(cz._chat_payload(
+                    [{"role": "user", "content": prompt}], False), timeout=180)
+                raw = data["choices"][0]["message"]["content"] or ""
+                body = raw.split("</think>")[-1]
+                if not re.search(r"\b(true|false)\b", body, re.IGNORECASE):
+                    rec["unparsed"].append(name)
+                rec["preds"][name] = normalize(raw, bench)
+                rec["raw_tail"][name] = body.strip()[-60:]
                 rec["ctx_tok"][name] = ntok(ctx)
         except Exception as e:
             rec["error"] = f"{type(e).__name__}: {str(e)[:200]}"

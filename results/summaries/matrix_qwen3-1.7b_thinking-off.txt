@@ -1,0 +1,68 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-10-12 08:51:03
+Split     : dev | stratified n=1037 | seed=0
+Endpoint  : http://localhost:8000/v1
+Thinking  : OFF
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                0.436        0.409        0.499        0.478        0.502
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                0.419        0.369        0.467        0.428        0.505
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                 2519         4556         2719          566         1035
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                   72         1986          136           55           36
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                    0            0            0            0            0
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-1.7b             zeroshot  n=1037 err=  0 bal=0.436 f1=0.419   0.9s
+      F1[Enta]=0.529  F1[Cont]=0.114  F1[NotM]=0.613
+      tokens: prompt=2447 completion=72 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2519.2 med=  2341.0 min=    573 max=    6653
+        prompt      mean=   2447.3 med=  2268.0 min=    565 max=    6516
+        completion  mean=     71.9 med=    78.0 min=      4 max=     337
+  qwen3-1.7b             dspy      n=1037 err=  0 bal=0.409 f1=0.369  25.7s
+      F1[Enta]=0.435  F1[Cont]=0.058  F1[NotM]=0.613
+      tokens: prompt=2570 completion=1986 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   4555.6 med=  4383.0 min=   1124 max=   19368
+        prompt      mean=   2569.7 med=  2377.0 min=    674 max=   13211
+        completion  mean=   1985.9 med=  1971.0 min=     15 max=    6157
+  qwen3-1.7b             cot       n=1037 err=  0 bal=0.499 f1=0.467   1.3s
+      F1[Enta]=0.576  F1[Cont]=0.268  F1[NotM]=0.557
+      tokens: prompt=2583 completion=136 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2719.1 med=  2560.0 min=    767 max=    6832
+        prompt      mean=   2583.3 med=  2404.0 min=    701 max=    6652
+        completion  mean=    135.8 med=   130.0 min=     49 max=     401
+  qwen3-1.7b             rag       n=1037 err=  0 bal=0.478 f1=0.428   0.9s
+      F1[Enta]=0.407  F1[Cont]=0.243  F1[NotM]=0.632
+      tokens: prompt=511 completion=55 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=    566.3 med=   546.0 min=    306 max=    1028
+        prompt      mean=    511.3 med=   494.0 min=    251 max=     974
+        completion  mean=     55.0 med=    61.0 min=      4 max=     228
+        ret.spans   mean=      8.0 med=     8.0 min=      8 max=       8
+  qwen3-1.7b             agentic_rag n=1037 err=  0 bal=0.502 f1=0.505   0.6s
+      F1[Enta]=0.720  F1[Cont]=0.262  F1[NotM]=0.532
+      tokens: prompt=999 completion=36 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   1034.7 med=  1035.0 min=    425 max=    3394
+        prompt      mean=    999.0 med=  1002.0 min=    406 max=    3355
+        completion  mean=     35.7 med=    29.0 min=     16 max=     195
+        steps       mean=      2.7 med=     3.0 min=      2 max=       5
+        ret.spans   mean=      8.5 med=    10.0 min=      5 max=      20

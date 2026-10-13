@@ -1,0 +1,49 @@
+============================================================================================
+Faithfulness sub-study - findver - n=700 seed=0
+============================================================================================
+
+STUDY 1 - EVIDENCE ABLATION (oracle form)
+--------------------------------------------------------------------------------------------
+  base = gold evidence + neighbouring passages.
+  ablated = base minus the gold passages.
+  random_ctrl = base minus an equal amount of NON-evidence text.
+  n=700
+
+  base           accuracy 0.721
+  random_ctrl    accuracy 0.729
+  ablated        accuracy 0.574
+  oracle         accuracy 0.744
+
+  Evidence-specific effect = +0.154
+
+STUDY 2 - RETRIEVAL FAITHFULNESS
+--------------------------------------------------------------------------------------------
+  n=700 | mean gold 2.8 of 240 passages
+
+     k    recall   precision   any hit  all hits
+     1     0.180       0.431     0.431     0.036
+     3     0.339       0.280     0.649     0.110
+     5     0.427       0.217     0.723     0.184
+     8     0.534       0.171     0.820     0.271
+    10     0.573       0.148     0.847     0.311
+    20     0.711       0.094     0.926     0.466
+
+STUDY 3 - AGENTIC STOPPING
+--------------------------------------------------------------------------------------------
+  n=700 trajectories (700 with gold evidence)
+  mean answer step        : 2.02
+  mean unique passages    : 7.9
+  duplicate slot fraction : 0.168
+  accuracy                : 0.660
+  gold recall at stop     : 0.565
+  ANSWERED WITHOUT GOLD   : 115/700 = 16.4%
+    ...still correct      : 75/115
+
+STUDY 4 - CITATION FAITHFULNESS
+--------------------------------------------------------------------------------------------
+  n=700 | with contract-directed quotes: 454
+  quote groundedness      : 0.669
+  quotes/rationale        : raw 2.16 (of the claim 0.39)
+  overlap with gold       : 0.251
+  overlap with control    : 0.089
+  lift over chance        : +0.161

@@ -1,0 +1,19 @@
+============================================================================================
+Faithfulness sub-study - coverbench - n=733 seed=0
+============================================================================================
+
+STUDY 3 - AGENTIC STOPPING
+--------------------------------------------------------------------------------------------
+  n=733 trajectories (0 with gold evidence)
+  mean answer step        : 2.13
+  mean unique passages    : 5.4
+  duplicate slot fraction : 0.336
+  accuracy                : 0.528
+  gold-dependent metrics  : UNAVAILABLE (no evidence annotation for this benchmark)
+
+STUDY 4 - CITATION FAITHFULNESS
+--------------------------------------------------------------------------------------------
+  n=733 | with contract-directed quotes: 399
+  quote groundedness      : 0.481
+  quotes/rationale        : raw 1.98 (of the claim 0.47)
+  overlap metrics         : UNAVAILABLE (no gold evidence)

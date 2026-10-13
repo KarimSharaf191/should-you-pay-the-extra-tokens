@@ -3,23 +3,46 @@
 ## ContractNLI (included)
 
 `contractnli/` contains the three official splits from
-[stanfordnlp/contract-nli](https://stanfordnlp.github.io/contract-nli/) (Koreeda and Manning, Findings of EMNLP 2021), released under CC BY 4.0 by Hitachi America, Ltd. See `contractnli/LICENSE` and `contractnli/TERMS`.
+[stanfordnlp/contract-nli](https://stanfordnlp.github.io/contract-nli/)
+(Koreeda and Manning, Findings of EMNLP 2021), released under CC BY 4.0 by
+Hitachi America, Ltd. See `contractnli/LICENSE` and `contractnli/TERMS`.
 
 | File | Contents |
 |---|---|
-| `dev.json` | 61 contracts, 1,037 (contract, hypothesis) instances; the evaluation split |
-| `test.json` | 123 contracts, 2,091 instances |
-| `train.json` | 423 contracts, 7,191 instances; used only for dataset statistics |
-| `sample_manifest_dev_n150_seed0.csv` | The 150-instance label-stratified dev sample (seed 0) used for the faithfulness study and the smaller-model runs |
+| `dev.json` | 61 contracts, 1,037 (contract, hypothesis) claims; the evaluation split |
+| `test.json` | 123 contracts, 2,091 claims |
+| `train.json` | 423 contracts, 7,191 claims; used only for dataset statistics |
 
-Each document has the contract `text`, its `spans` (character offsets), and `annotation_sets[0].annotations[<hypothesis id>]` with the gold `choice` (Entailment / Contradiction / NotMentioned) and gold evidence `spans` (indices into the document's span list). The 17 hypotheses are in the top-level `labels` object.
+Each document has the contract `text`, its `spans` (character offsets), and
+`annotation_sets[0].annotations[<hypothesis id>]` with the gold `choice`
+(Entailment / Contradiction / NotMentioned) and gold evidence `spans`.
 
-## FinDVer (not included)
+## FinDVer (downloaded)
 
-Clone the authors' repository ([yilunzhao/FinDVer](https://github.com/yilunzhao/FinDVer)) to `data/findver/`, or set `FINDVER_DIR`. The code expects `data/<split>.json` and the `financial_reports/` folder inside it. The paper uses the `testmini` split (700 claims), the only split with public labels.
+```bash
+bash data/get_findver.sh
+```
 
-## CoverBench (not included)
+Clones [yilunzhao/FinDVer](https://github.com/yilunzhao/FinDVer) (MIT) at the
+commit used for the paper into `data/findver/`. We use the `testmini` split
+(700 claims), the only split with public labels.
 
-Request access to the gated Hugging Face release ([Jacovi et al., 2024](https://arxiv.org/abs/2408.03325)) and save its `eval/coverbench.json` as `data/coverbench/coverbench.json`, or set `COVERBENCH_PATH`.
+## CoverBench (downloaded, not redistributed)
 
-CoverBench is licensed CC BY-ND 4.0, and its terms ask that it not be uploaded anywhere web crawlers can reach. Keep it out of this repository; `.gitignore` already excludes `data/coverbench/`. The CoverBench records in `results/rlm-multi/` contain only instance ids, labels and token counts, no CoverBench text.
+```bash
+pip install huggingface_hub
+huggingface-cli login            # after accepting the dataset terms on Hugging Face
+python data/get_coverbench.py
+```
+
+Downloads `eval/coverbench.json` from the gated
+[google/coverbench](https://huggingface.co/datasets/google/coverbench) release
+into `data/coverbench/`. CoverBench is licensed CC BY-ND 4.0 and its terms ask
+that it not be uploaded anywhere web crawlers can reach, so it is git-ignored
+here, and CoverBench records in `results/` contain no CoverBench text.
+
+## Retrieval indexes
+
+RAG and agentic RAG on FinDVer and CoverBench use per-document indexes in
+`data/findver_index/` and `data/coverbench_index/` (git-ignored). Build the
+FinDVer index with `python -m src.findver_coverbench.build_index --benchmark findver`.

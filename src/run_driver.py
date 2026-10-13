@@ -3,9 +3,8 @@ run_driver.py
 =============
 Serves Qwen3-4B and Qwen3-1.7B with vLLM and runs the 5 scaffolds
 (zeroshot, dspy, cot, rag, agentic_rag), thinking off and on, on the
-150-instance stratified ContractNLI dev sample (seed 0) pinned by
-sample_manifest_dev_n150_seed0.csv -- the same instances as the Qwen3-8B
-n=150 runs.
+full ContractNLI dev split (61 contracts, 1,037 instances) -- the same
+instances as the Qwen3-8B full-dev runs.
 
   2 GPUs (Kaggle "GPU T4 x2"): 4B on GPU 0, 1.7B on GPU 1, all 4 jobs at once.
   1 GPU                      : one model at a time (1.7B first).
@@ -26,8 +25,8 @@ import urllib.request
 WORK = os.environ.get("CONTRACTNLI_DATA_DIR",
                       os.path.dirname(os.path.abspath(__file__)))
 LOGS = os.path.join(WORK, "logs")
-MANIFEST = "sample_manifest_dev_n150_seed0.csv"
-N = "150"
+# Full ContractNLI dev split (61 contracts, 1,037 instances).
+N = "1037"
 
 
 def log(msg):
@@ -44,7 +43,9 @@ def gpus():
 # On a 15 GB T4, Qwen3-4B's fp16 weights (~8 GB) leave too little KV cache for
 # a 32K context and vLLM refuses to start. 16K still fits the longest contract
 # (~11K tokens) plus a long thinking trace.
-MAX_LEN = {"Qwen/Qwen3-4B": 16384, "Qwen/Qwen3-1.7B": 32768}
+# 4B: 20K context still leaves enough KV cache on a 15 GB T4 and fits the
+# longest contract (~12K tokens) plus the 6K output cap below.
+MAX_LEN = {"Qwen/Qwen3-4B": 20480, "Qwen/Qwen3-1.7B": 32768}
 
 
 def serve(model, port, gpu, frac, dtype):
@@ -127,8 +128,7 @@ def run_jobs(pairs):
         for think in (False, True):
             name = f"{model.split('/')[-1].lower()}_{'think' if think else 'nothink'}"
             fh = open(os.path.join(LOGS, f"run_{name}.log"), "a")
-            cmd = matrix_cmd(model, port, ["--n", N, "--manifest", MANIFEST,
-                                           "--concurrency", "16"]
+            cmd = matrix_cmd(model, port, ["--n", N, "--concurrency", "16"]
                              + (["--thinking"] if think else []))
             procs.append((name, subprocess.Popen(cmd, cwd=WORK, stdout=fh,
                                                  stderr=subprocess.STDOUT)))
@@ -170,6 +170,10 @@ def main():
 
     os.makedirs(LOGS, exist_ok=True)
     os.environ.setdefault("CONTRACTNLI_TIMEOUT", "900")
+    # Cap output so a looping thinking trace cannot stall a run; normal
+    # traces here are 250-600 tokens.
+    os.environ.setdefault("CONTRACTNLI_MAX_TOKENS", "6144")
+    os.environ.setdefault("CONTRACTNLI_MAX_RETRIES", "2")
     g = gpus()
     for row in g:
         log(f"GPU: {row}")

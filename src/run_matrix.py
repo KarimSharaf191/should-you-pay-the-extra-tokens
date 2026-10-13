@@ -71,7 +71,10 @@ THINKING = False
 
 
 def _prefix():
-    return "matrix-think" if THINKING else "matrix"
+    # CONTRACTNLI_RUN_TAG (e.g. "-s1") keeps sampled sensitivity runs apart
+    # from the greedy runs: results/matrix-think-s1-<condition>/...
+    return ("matrix-think" if THINKING else "matrix") + \
+        os.environ.get("CONTRACTNLI_RUN_TAG", "")
 
 
 def out_dir(condition, model):

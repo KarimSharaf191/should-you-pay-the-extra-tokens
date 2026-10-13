@@ -41,8 +41,6 @@ Usage
 """
 
 import os
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR", os.path.join(_ROOT, "results"))
 import re
 import json
 import random
@@ -56,6 +54,9 @@ import numpy as np
 import contractnli_zeroshot as cz
 from run_rlm_contractnli import load_split, iter_instances, stratified_sample
 
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR",
+                             os.path.join(_ROOT, "results"))
 OUT_DIR = os.path.join(RESULTS_DIR, "faithfulness")
 LABELS = ["Entailment", "Contradiction", "NotMentioned"]
 
@@ -480,7 +481,10 @@ def read_jsonl(path):
 # ----------------------------------------------------------------------
 def baseline_preds(n, seed, split):
     """Full-context zeroshot predictions from the main matrix, for study 1."""
-    p = os.path.join(RESULTS_DIR, "matrix-zeroshot", "qwen3-8b",
+    # FAITH_BASELINE_SLUG picks whose zeroshot run is the full-context
+    # baseline, so a self-hosted re-run compares against its own server.
+    p = os.path.join(RESULTS_DIR, "matrix-zeroshot",
+                     os.environ.get("FAITH_BASELINE_SLUG", "qwen3-8b"),
                      f"records_{split}_n{n}_seed{seed}.jsonl")
     out = {}
     for r in read_jsonl(p):

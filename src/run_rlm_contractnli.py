@@ -46,15 +46,15 @@ from sklearn.metrics import balanced_accuracy_score, f1_score, classification_re
 # ----------------------------------------------------------------------
 # Repo layout: src/ (this file), data/contractnli/, results/.
 # CONTRACTNLI_DATA_DIR / CONTRACTNLI_RESULTS_DIR override both. When only
-# CONTRACTNLI_DATA_DIR is set (flat layout, e.g. the Kaggle notebook), results
-# go next to the data, as before.
+# CONTRACTNLI_DATA_DIR is set (flat layout, e.g. a notebook), results go next
+# to the data.
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.environ.get("CONTRACTNLI_DATA_DIR",
                           os.path.join(_ROOT, "data", "contractnli"))
 RESULTS_DIR = os.environ.get(
     "CONTRACTNLI_RESULTS_DIR",
-    os.path.join(DATA_DIR, 'results') if "CONTRACTNLI_DATA_DIR" in os.environ
-    else os.path.join(_ROOT, 'results'))
+    os.path.join(DATA_DIR, "results") if "CONTRACTNLI_DATA_DIR" in os.environ
+    else os.path.join(_ROOT, "results"))
 MODEL = os.environ.get("OPENROUTER_MODEL", "qwen/qwen3-8b")
 API_KEY = os.environ.get("OPENROUTER_API_KEY")
 

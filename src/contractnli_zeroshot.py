@@ -44,15 +44,15 @@ BASE_URL = os.environ.get("LLM_BASE_URL", "https://openrouter.ai/api/v1")
 # Path to your split files
 # Repo layout: src/ (this file), data/contractnli/, results/.
 # CONTRACTNLI_DATA_DIR / CONTRACTNLI_RESULTS_DIR override both. When only
-# CONTRACTNLI_DATA_DIR is set (flat layout, e.g. the Kaggle notebook), results
-# go next to the data, as before.
+# CONTRACTNLI_DATA_DIR is set (flat layout, e.g. a notebook), results go next
+# to the data.
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.environ.get("CONTRACTNLI_DATA_DIR",
                           os.path.join(_ROOT, "data", "contractnli"))
 RESULTS_DIR = os.environ.get(
     "CONTRACTNLI_RESULTS_DIR",
-    os.path.join(DATA_DIR, 'results') if "CONTRACTNLI_DATA_DIR" in os.environ
-    else os.path.join(_ROOT, 'results'))
+    os.path.join(DATA_DIR, "results") if "CONTRACTNLI_DATA_DIR" in os.environ
+    else os.path.join(_ROOT, "results"))
 
 # Long-context study: pass the full contract text, no truncation.
 MAX_CHARS = None
@@ -211,6 +211,22 @@ Answer (one label only):{nothink}"""
 # ----------------------------------------------------------------------
 # Path 1: raw OpenRouter
 # ----------------------------------------------------------------------
+def _env_num(name, cast):
+    v = os.environ.get(name)
+    return cast(v) if v not in (None, "") else None
+
+
+# Decoding. Greedy unless overridden, e.g. Qwen3's recommended thinking-mode
+# sampling: CONTRACTNLI_TEMPERATURE=0.6 CONTRACTNLI_TOP_P=0.95
+# CONTRACTNLI_TOP_K=20 CONTRACTNLI_SAMPLE_SEED=1
+_SAMPLING = {
+    "temperature": _env_num("CONTRACTNLI_TEMPERATURE", float) or 0.0,
+    "top_p": _env_num("CONTRACTNLI_TOP_P", float),
+    "top_k": _env_num("CONTRACTNLI_TOP_K", int),
+    "seed": _env_num("CONTRACTNLI_SAMPLE_SEED", int),
+}
+
+
 def _chat_payload(messages, thinking_on):
     """Build a chat-completions body for the configured endpoint.
 
@@ -222,8 +238,16 @@ def _chat_payload(messages, thinking_on):
     body = {
         "model": MODEL,
         "messages": messages,
-        "temperature": 0.0,
+        "temperature": _SAMPLING["temperature"],
     }
+    # Optional sampling (sensitivity runs); default is greedy decoding.
+    for k in ("top_p", "top_k", "seed"):
+        if _SAMPLING[k] is not None:
+            body[k] = _SAMPLING[k]
+    # Optional output cap. Greedy decoding can trap Qwen3's thinking mode in a
+    # repetition loop that otherwise runs until the request times out.
+    if os.environ.get("CONTRACTNLI_MAX_TOKENS"):
+        body["max_tokens"] = int(os.environ["CONTRACTNLI_MAX_TOKENS"])
     if "openrouter.ai" in BASE_URL:
         body["reasoning"] = {"enabled": thinking_on}
         body["usage"] = {"include": True}
@@ -337,7 +361,7 @@ def build_dspy_program(condition="zeroshot"):
     lm_kwargs = dict(
         api_key=API_KEY or "EMPTY",
         api_base=BASE_URL,
-        temperature=0.0,
+        temperature=_SAMPLING["temperature"],
         # Disable caching: cached responses don't carry usage metadata, which
         # is why tokens vanish on repeated identical runs. We need a live call
         # each time to get accurate token accounting.
@@ -354,7 +378,15 @@ def build_dspy_program(condition="zeroshot"):
         # and DSPy prompts carry no /no_think directive.
         lm_kwargs["extra_body"] = {
             "chat_template_kwargs": {"enable_thinking": thinking_on}}
+        if _SAMPLING["top_k"] is not None:
+            lm_kwargs["extra_body"]["top_k"] = _SAMPLING["top_k"]
+        if _SAMPLING["top_p"] is not None:
+            lm_kwargs["top_p"] = _SAMPLING["top_p"]
+        if _SAMPLING["seed"] is not None:
+            lm_kwargs["seed"] = _SAMPLING["seed"]
         lm_kwargs["timeout"] = _timeout(600)
+        if os.environ.get("CONTRACTNLI_MAX_TOKENS"):
+            lm_kwargs["max_tokens"] = int(os.environ["CONTRACTNLI_MAX_TOKENS"])
 
     lm = dspy.LM(
         (f"openrouter/{MODEL}" if _via_openrouter else f"openai/{MODEL}"),

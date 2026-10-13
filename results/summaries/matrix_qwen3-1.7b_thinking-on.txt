@@ -1,0 +1,78 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-10-12 08:54:08
+Split     : dev | stratified n=1037 | seed=0
+Endpoint  : http://localhost:8000/v1
+Thinking  : ON (native reasoning enabled)
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                0.563        0.567        0.617        0.599        0.606
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                0.521        0.509        0.553        0.564        0.544
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                 2985         3017         3199         1044         1141
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                  545          464          620          541          643
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-1.7b                                  485          425          497          515          598
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-1.7b             zeroshot  n=1037 err=  0 bal=0.563 f1=0.521   7.1s
+      F1[Enta]=0.618  F1[Cont]=0.290  F1[NotM]=0.655
+      tokens: prompt=2439 completion=545 reasoning=485 think=485 (<think> in 1037/1037)
+        total       mean=   2984.6 med=  2786.0 min=    885 max=    8210
+        prompt      mean=   2439.3 med=  2260.0 min=    557 max=    6508
+        completion  mean=    545.3 med=   457.0 min=    163 max=    3001
+        reasoning   mean=    485.4 med=   396.0 min=    156 max=    2876
+        <think>     mean=    485.4 med=   396.0 min=    156 max=    2876
+  qwen3-1.7b             dspy      n=1037 err=  0 bal=0.567 f1=0.509   6.5s
+      F1[Enta]=0.586  F1[Cont]=0.349  F1[NotM]=0.591
+      tokens: prompt=2552 completion=464 reasoning=425 think=425 (<think> in 1037/1037)
+        total       mean=   3016.8 med=  2775.0 min=    985 max=    9664
+        prompt      mean=   2552.3 med=  2373.0 min=    670 max=    6621
+        completion  mean=    464.4 med=   377.0 min=    163 max=    4948
+        reasoning   mean=    424.9 med=   343.0 min=    144 max=    2451
+        <think>     mean=    424.9 med=   343.0 min=    144 max=    2451
+  qwen3-1.7b             cot       n=1037 err=  0 bal=0.617 f1=0.553   7.5s
+      F1[Enta]=0.636  F1[Cont]=0.389  F1[NotM]=0.633
+      tokens: prompt=2579 completion=620 reasoning=497 think=497 (<think> in 1037/1037)
+        total       mean=   3199.2 med=  3014.0 min=    992 max=    8470
+        prompt      mean=   2579.3 med=  2400.0 min=    697 max=    6648
+        completion  mean=    619.9 med=   534.0 min=    217 max=    3135
+        reasoning   mean=    497.2 med=   415.0 min=    133 max=    3050
+        <think>     mean=    497.2 med=   415.0 min=    133 max=    3050
+  qwen3-1.7b             rag       n=1037 err=  0 bal=0.599 f1=0.564   6.6s
+      F1[Enta]=0.640  F1[Cont]=0.376  F1[NotM]=0.675
+      tokens: prompt=503 completion=541 reasoning=515 think=515 (<think> in 1035/1037)
+        total       mean=   1044.1 med=   946.0 min=    556 max=    6743
+        prompt      mean=    503.3 med=   486.0 min=    243 max=     966
+        completion  mean=    540.8 med=   422.0 min=    185 max=    6144
+        reasoning   mean=    515.5 med=   413.0 min=      0 max=    3299
+        <think>     mean=    515.5 med=   413.0 min=      0 max=    3299
+        ret.spans   mean=      8.0 med=     8.0 min=      8 max=       8
+  qwen3-1.7b             agentic_rag n=1037 err=  0 bal=0.606 f1=0.544   3.4s
+      F1[Enta]=0.604  F1[Cont]=0.423  F1[NotM]=0.606
+      tokens: prompt=498 completion=643 reasoning=598 think=598 (<think> in 1037/1037)
+        total       mean=   1141.0 med=  1138.0 min=    320 max=    2533
+        prompt      mean=    497.8 med=   502.0 min=    127 max=    1126
+        completion  mean=    643.1 med=   616.0 min=    187 max=    1911
+        reasoning   mean=    598.5 med=   574.0 min=    177 max=    1813
+        <think>     mean=    598.5 med=   574.0 min=    177 max=    1813
+        steps       mean=      1.9 med=     2.0 min=      1 max=       3
+        ret.spans   mean=      4.7 med=     5.0 min=      0 max=      10

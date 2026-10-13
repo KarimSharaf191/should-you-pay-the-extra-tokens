@@ -1,0 +1,41 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-10-12 03:59:00
+Split     : dev | stratified n=1037 | seed=0
+Endpoint  : http://localhost:8000/v1
+Thinking  : OFF
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b-vllm                             0.529            -            -            -            -
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b-vllm                             0.538            -            -            -            -
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b-vllm                              2452            -            -            -            -
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b-vllm                                 4            -            -            -            -
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  qwen3-8b-vllm                                 0            -            -            -            -
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  qwen3-8b-vllm          zeroshot  n=1037 err=  0 bal=0.529 f1=0.538   0.5s
+      F1[Enta]=0.746  F1[Cont]=0.226  F1[NotM]=0.643
+      tokens: prompt=2447 completion=4 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2451.7 med=  2273.0 min=    570 max=    6520
+        prompt      mean=   2447.3 med=  2268.0 min=    565 max=    6516
+        completion  mean=      4.4 med=     4.0 min=      4 max=       5

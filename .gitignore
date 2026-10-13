@@ -16,3 +16,9 @@ paper/*.out
 paper/*.pdf
 paper/*.sty
 paper/*.bst
+
+# Retrieval indexes and local run outputs
+data/*_index/
+results/findver/
+results/coverbench/
+*.zip

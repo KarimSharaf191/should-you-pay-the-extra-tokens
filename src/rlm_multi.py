@@ -42,8 +42,6 @@ Usage
 """
 
 import os
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR", os.path.join(_ROOT, "results"))
 import re
 import json
 import time
@@ -54,8 +52,12 @@ import statistics
 import run_rlm_traced as T
 import rlm_utf8_patch              # UTF-8 fix for the rlm REPL context file (Windows)
 
-FINDVER = os.environ.get("FINDVER_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "findver"))
-COVERBENCH = os.environ.get("COVERBENCH_PATH", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "coverbench", "coverbench.json"))
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FINDVER = os.environ.get("FINDVER_DIR", os.path.join(_ROOT, "data", "findver"))
+COVERBENCH = os.environ.get("COVERBENCH_FILE") or os.environ.get(
+    "COVERBENCH_PATH", os.path.join(_ROOT, "data", "coverbench", "coverbench.json"))
+RESULTS_DIR = os.environ.get("CONTRACTNLI_RESULTS_DIR",
+                             os.path.join(_ROOT, "results"))
 
 try:
     import tiktoken
@@ -251,6 +253,11 @@ def main():
     ap.add_argument("--max-timeout", type=float, default=900.0)
     ap.add_argument("--max-concurrent-subcalls", type=int, default=4)
     ap.add_argument("--environment", default="local")
+    # Process-level sharding: the per-instance ledger needs concurrency 1
+    # within a process, so throughput comes from running K processes, each on
+    # every K-th instance of the same deterministic sample.
+    ap.add_argument("--shard", type=int, default=0)
+    ap.add_argument("--num-shards", type=int, default=1)
     args = ap.parse_args()
 
     split = args.split or {"contractnli": "dev", "findver": "testmini",
@@ -268,9 +275,16 @@ def main():
     tag = "think" if args.thinking else "nothink"
     out_dir = os.path.join(RESULTS_DIR, "rlm-multi", args.benchmark)
     os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, f"rlm_{tag}_n{args.n}_seed{args.seed}.jsonl")
-    done = load_done(path)
-    todo = [s for s in sub if s[0] not in done]
+    stem = f"rlm_{tag}_n{args.n}_seed{args.seed}"
+    path = os.path.join(out_dir, stem + (f"_shard{args.shard}of{args.num_shards}"
+                                         if args.num_shards > 1 else "") + ".jsonl")
+    # Done = finished in ANY file of this sample, so changing the shard count
+    # between sessions never reruns or double-counts an instance.
+    import glob
+    done = set()
+    for f in glob.glob(os.path.join(out_dir, stem + "*.jsonl")):
+        done |= load_done(f)
+    todo = [s for s in sub[args.shard::args.num_shards] if s[0] not in done]
 
     from rlm import RLM
     # The fix: the library forwards sampling_args straight to the chat
@@ -281,6 +295,15 @@ def main():
                                         and "openrouter" in args.base_url):
         sampling["extra_body"] = {"reasoning": {"enabled": bool(args.thinking)},
                                   "usage": {"include": True}}
+    elif args.base_url:
+        # Self-hosted vLLM: Qwen3's chat template thinks by default, so the
+        # switch is sent explicitly both ways, as in contractnli_zeroshot.
+        sampling["extra_body"] = {"chat_template_kwargs":
+                                  {"enable_thinking": bool(args.thinking)}}
+    # Optional per-call output cap (vLLM runs only); guards against a greedy
+    # repetition loop. Normal calls generate well under 1K tokens.
+    if os.environ.get("RLM_MAX_TOKENS"):
+        sampling["max_tokens"] = int(os.environ["RLM_MAX_TOKENS"])
     bk = {"model_name": args.model, "api_key": key or "EMPTY",
           "sampling_args": sampling}
     if args.base_url:

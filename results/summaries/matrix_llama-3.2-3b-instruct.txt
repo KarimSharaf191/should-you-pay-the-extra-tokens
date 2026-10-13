@@ -1,0 +1,71 @@
+==============================================================================
+ContractNLI — model x condition matrix
+==============================================================================
+Timestamp : 2026-10-12 05:37:51
+Split     : dev | stratified n=1037 | seed=0
+Endpoint  : https://openrouter.ai/api/v1
+Thinking  : OFF
+
+BALANCED ACCURACY
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  llama-3.2-3b-instruct                     0.328        0.293        0.320        0.354        0.432
+
+MACRO F1
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  llama-3.2-3b-instruct                     0.310        0.271        0.316        0.317        0.374
+
+AVG TOTAL TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  llama-3.2-3b-instruct                      2442         2565         2684          528          902
+
+AVG GENERATED (COMPLETION) TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  llama-3.2-3b-instruct                         5           18          110            5           26
+
+AVG REASONING TOKENS / INSTANCE
+------------------------------------------------------------------------------
+  model                                  zeroshot         dspy          cot          rag  agentic_rag
+  llama-3.2-3b-instruct                         0            0            0            0            0
+
+PER-RUN DETAIL
+------------------------------------------------------------------------------
+  llama-3.2-3b-instruct  zeroshot  n=1037 err=  0 bal=0.328 f1=0.310   1.5s
+      F1[Enta]=0.452  F1[Cont]=0.020  F1[NotM]=0.459
+      tokens: prompt=2438 completion=5 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2442.4 med=  2273.0 min=    569 max=    6408
+        prompt      mean=   2437.7 med=  2268.0 min=    564 max=    6404
+        completion  mean=      4.6 med=     5.0 min=      4 max=       6
+        cachedtok   mean=   1085.5 med=    80.0 min=      0 max=    6336
+  llama-3.2-3b-instruct  dspy      n=1037 err=  0 bal=0.293 f1=0.271   0.5s
+      F1[Enta]=0.335  F1[Cont]=0.029  F1[NotM]=0.450
+      tokens: prompt=2547 completion=18 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2565.3 med=  2397.0 min=    684 max=    6513
+        prompt      mean=   2547.4 med=  2382.0 min=    675 max=    6497
+        completion  mean=     17.9 med=    15.0 min=      9 max=    1358
+  llama-3.2-3b-instruct  cot       n=1037 err=  0 bal=0.320 f1=0.316   0.8s
+      F1[Enta]=0.528  F1[Cont]=0.101  F1[NotM]=0.320
+      tokens: prompt=2575 completion=110 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=   2684.4 med=  2524.0 min=    746 max=    6685
+        prompt      mean=   2574.6 med=  2406.0 min=    697 max=    6535
+        completion  mean=    109.7 med=   108.0 min=     34 max=     255
+  llama-3.2-3b-instruct  rag       n=1037 err=  0 bal=0.354 f1=0.317   9.5s
+      F1[Enta]=0.359  F1[Cont]=0.033  F1[NotM]=0.560
+      tokens: prompt=523 completion=5 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=    528.0 med=   513.0 min=    255 max=    1002
+        prompt      mean=    523.0 med=   508.0 min=    250 max=     997
+        completion  mean=      5.0 med=     5.0 min=      4 max=       6
+        ret.spans   mean=      8.0 med=     8.0 min=      8 max=       8
+        cachedtok   mean=     76.3 med=     0.0 min=      0 max=     704
+  llama-3.2-3b-instruct  agentic_rag n=1037 err=  0 bal=0.432 f1=0.374   3.8s
+      F1[Enta]=0.416  F1[Cont]=0.201  F1[NotM]=0.506
+      tokens: prompt=876 completion=26 reasoning=0 think=0 (<think> in 0/1037)
+        total       mean=    902.3 med=   623.0 min=    384 max=    3724
+        prompt      mean=    875.9 med=   603.0 min=    363 max=    3648
+        completion  mean=     26.4 med=    22.0 min=     15 max=     133
+        steps       mean=      2.5 med=     2.0 min=      2 max=       6
+        ret.spans   mean=      7.6 med=     5.0 min=      5 max=      25
+        cachedtok   mean=    186.0 med=   144.0 min=      0 max=    1376

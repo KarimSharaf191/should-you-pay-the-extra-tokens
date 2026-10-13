@@ -15,8 +15,10 @@ import random
 import statistics
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-FINDVER = os.environ.get("FINDVER_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "findver"))
-COVERBENCH = os.environ.get("COVERBENCH_PATH", os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "coverbench", "coverbench.json"))
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FINDVER = os.environ.get("FINDVER_DIR", os.path.join(_ROOT, "data", "findver"))
+COVERBENCH = os.environ.get("COVERBENCH_FILE") or os.environ.get(
+    "COVERBENCH_PATH", os.path.join(_ROOT, "data", "coverbench", "coverbench.json"))
 
 try:
     import tiktoken
@@ -59,6 +61,14 @@ PROMPTS = {
             "EXCERPTS:\n{context}\n\nSTATEMENT:\n{claim}\n\n"
             "Reasoning, then your one-word answer:"
         ),
+        # Study 1 (evidence ablation): same task as "cot", answer only.
+        "direct": (
+            "You are analyzing excerpts from a company's SEC filing.\n\n"
+            "Decide whether the excerpts support the STATEMENT. Answer with "
+            "exactly one word: True or False.\n\n"
+            "EXCERPTS:\n{context}\n\nSTATEMENT:\n{claim}\n\n"
+            "Answer:"
+        ),
     },
     "coverbench": {
         "agentic": (
@@ -80,6 +90,14 @@ PROMPTS = {
             "with exactly one word: True or False.\n\n"
             "EXCERPTS:\n{context}\n\nCLAIM:\n{claim}\n\n"
             "Reasoning, then your one-word answer:"
+        ),
+        "direct": (
+            "You are analyzing excerpts from a source document, which may "
+            "contain prose, tables, or both.\n\n"
+            "Decide whether the excerpts support the CLAIM. Answer with "
+            "exactly one word: True or False.\n\n"
+            "EXCERPTS:\n{context}\n\nCLAIM:\n{claim}\n\n"
+            "Answer:"
         ),
     },
 }
